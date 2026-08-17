@@ -143,6 +143,11 @@ async function loadProfile(uid) {
     document.getElementById('prof-memberid').innerText = data.memberId;
     document.getElementById('prof-name').innerText = data.name;
 
+    // เพิ่มบรรทัดนี้
+    if (data.profileImage) {
+      document.getElementById('prof-pic').src = data.profileImage;
+    }
+
     const addrBox = document.getElementById('prof-address');
     if (data.address) {
       const a = data.address;
@@ -152,3 +157,45 @@ async function loadProfile(uid) {
     }
   }
 }
+
+// ⚠️ แทนที่ 2 ค่านี้ด้วยของพี่เองจาก Cloudinary
+const CLOUDINARY_CLOUD_NAME = 'l1htg1ks';
+const CLOUDINARY_UPLOAD_PRESET = 'goodday_unsigned';
+
+document.getElementById('btn-change-pic').onclick = () => {
+  document.getElementById('pic-input').click(); // จำลองการกดปุ่มเลือกไฟล์จริง
+};
+
+document.getElementById('pic-input').onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const statusBox = document.getElementById('pic-status');
+  statusBox.innerText = 'กำลังอัปโหลด...';
+  statusBox.classList.remove('hidden');
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+  try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+    const data = await res.json();
+
+    if (data.secure_url) {
+      // เก็บลิงก์รูปไว้ใน Firestore
+      await updateDoc(doc(db, 'users', currentUid), {
+        profileImage: data.secure_url
+      });
+      document.getElementById('prof-pic').src = data.secure_url;
+      statusBox.classList.add('hidden');
+    } else {
+      statusBox.innerText = 'อัปโหลดไม่สำเร็จ';
+    }
+  } catch (err) {
+    statusBox.innerText = 'เกิดข้อผิดพลาด: ' + err.message;
+  }
+};

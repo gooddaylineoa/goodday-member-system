@@ -37,6 +37,14 @@
 
     <!-- หน้า Profile -->
     <div id="profile-view" class="hidden">
+
+      <div class="text-center mb-4">
+        <img id="prof-pic" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-pink-200">
+        <input type="file" id="pic-input" accept="image/*" class="hidden">
+        <button id="btn-change-pic" class="text-pink-600 text-sm font-bold mt-2">เปลี่ยนรูปโปรไฟล์</button>
+        <p id="pic-status" class="text-xs text-gray-400 mt-1 hidden">กำลังอัปโหลด...</p>
+      </div>
+
       <div class="bg-pink-600 text-white rounded-xl p-5 mb-6">
         <p class="text-sm opacity-80">Member ID</p>
         <h2 id="prof-memberid" class="text-2xl font-bold">-</h2>
