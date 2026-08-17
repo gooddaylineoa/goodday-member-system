@@ -5,39 +5,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Goodday Member</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Sarabun', sans-serif; background-color: #F3F4F6; }
+    .theme-pink { background-color: #d81b60; }
+    .theme-text { color: #d81b60; }
+    .form-input {
+      width: 100%; border: 1px solid #D1D5DB; border-radius: 0.75rem; padding: 0.75rem;
+      font-size: 0.875rem; transition: all 0.2s; background-color: white; color: #374151; font-family: 'Sarabun';
+    }
+    .form-input:focus { outline: none; border-color: #d81b60; box-shadow: 0 0 0 2px #fce4ec; }
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-md mx-auto bg-white min-h-screen p-4 pt-10">
+<body class="antialiased text-gray-800 pb-20">
+
+  <div class="max-w-md mx-auto bg-white min-h-screen relative shadow-lg">
+
+    <div class="theme-pink text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+      <h1 class="text-lg font-semibold tracking-wide"><i class="fa-solid fa-circle-user mr-2"></i>สมาชิก Goodday</h1>
+    </div>
 
     <!-- หน้า Login -->
-    <div id="login-view">
-      <h2 class="text-xl font-bold text-pink-600 mb-4 text-center">เข้าสู่ระบบ</h2>
-      <input id="login-email" type="email" placeholder="อีเมล" class="w-full border rounded-lg p-3 mb-3">
-      <input id="login-pass" type="password" placeholder="รหัสผ่าน" class="w-full border rounded-lg p-3 mb-3">
-      <p id="login-error" class="text-red-500 text-sm mb-3 hidden"></p>
-      <button id="btn-login" class="w-full bg-pink-600 text-white py-3 rounded-lg font-bold">เข้าสู่ระบบ</button>
-      <p class="text-center text-sm mt-4">
-        ยังไม่มีบัญชี? <button id="go-register" class="text-pink-600 font-bold">สมัครสมาชิก</button>
-      </p>
+    <div id="login-view" class="page-section active p-4 pt-10">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4"><i class="fa-solid fa-user-lock"></i></div>
+        <h2 class="text-xl font-bold theme-text">เข้าสู่ระบบสมาชิก</h2>
+        <p class="text-gray-500 mt-1 text-sm">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">อีเมล</label>
+          <input id="login-email" type="email" class="form-input" placeholder="กรอกอีเมล...">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">รหัสผ่าน</label>
+          <input id="login-pass" type="password" class="form-input" placeholder="กรอกรหัสผ่าน...">
+        </div>
+        <div id="login-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden"></div>
+        <button id="btn-login" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md hover:bg-pink-700 transition mt-2 text-sm">เข้าสู่ระบบ</button>
+        <div class="text-center mt-6">
+          <p class="text-gray-500 font-medium text-xs">ยังไม่เป็นสมาชิก?</p>
+          <button id="go-register" class="mt-3 w-full bg-white border border-pink-500 theme-text py-3 rounded-xl font-semibold text-sm hover:bg-pink-50 transition">สมัครสมาชิกใหม่</button>
+        </div>
+      </div>
     </div>
 
     <!-- หน้า Register -->
-    <div id="register-view" class="hidden">
-      <h2 class="text-xl font-bold text-pink-600 mb-4 text-center">สมัครสมาชิก</h2>
-      <input id="reg-name" type="text" placeholder="ชื่อ-นามสกุล" class="w-full border rounded-lg p-3 mb-3">
-      <input id="reg-phone" type="tel" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-lg p-3 mb-3">
-      <input id="reg-email" type="email" placeholder="อีเมล" class="w-full border rounded-lg p-3 mb-3">
-      <input id="reg-pass" type="password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)" class="w-full border rounded-lg p-3 mb-3">
-      <p id="reg-error" class="text-red-500 text-sm mb-3 hidden"></p>
-      <button id="btn-register" class="w-full bg-pink-600 text-white py-3 rounded-lg font-bold">สมัครสมาชิก</button>
-      <p class="text-center text-sm mt-4">
-        มีบัญชีแล้ว? <button id="go-login" class="text-pink-600 font-bold">เข้าสู่ระบบ</button>
-      </p>
+    <div id="register-view" class="page-section p-4 pt-6">
+      <div class="flex items-center mb-6">
+        <button id="go-login" class="w-8 h-8 bg-gray-100 rounded-full text-gray-600 mr-3"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold theme-text">สร้างบัญชี</h2>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">ชื่อ-นามสกุล *</label>
+          <input id="reg-name" type="text" class="form-input" placeholder="ชื่อ นามสกุล">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">เบอร์โทรศัพท์ *</label>
+          <input id="reg-phone" type="tel" class="form-input" placeholder="08xxxxxxxx">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">อีเมล (ใช้เข้าระบบ) *</label>
+          <input id="reg-email" type="email" class="form-input" placeholder="example@email.com">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">รหัสผ่าน *</label>
+          <input id="reg-pass" type="password" class="form-input" placeholder="อย่างน้อย 6 ตัวอักษร">
+        </div>
+        <div id="reg-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden"></div>
+        <button id="btn-register" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-2 transition text-sm">ยืนยันสมัครสมาชิก</button>
+      </div>
     </div>
 
     <!-- หน้า Profile -->
-    <div id="profile-view" class="hidden">
-
+    <div id="profile-view" class="page-section p-4 pt-6">
       <div class="text-center mb-4">
         <img id="prof-pic" src="https://via.placeholder.com/100" class="w-24 h-24 rounded-full object-cover mx-auto border-4 border-pink-200">
         <input type="file" id="pic-input" accept="image/*" class="hidden">
@@ -45,73 +91,287 @@
         <p id="pic-status" class="text-xs text-gray-400 mt-1 hidden">กำลังอัปโหลด...</p>
       </div>
 
-      <div class="bg-pink-600 text-white rounded-xl p-5 mb-6">
-        <p class="text-sm opacity-80">Member ID</p>
-        <h2 id="prof-memberid" class="text-2xl font-bold">-</h2>
-        <h3 id="prof-name" class="text-lg mt-2">-</h3>
+      <div class="bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl p-5 text-white shadow-sm mb-6 relative overflow-hidden">
+        <div class="absolute right-[-10px] top-[-10px] opacity-20 text-8xl"><i class="fa-solid fa-address-card"></i></div>
+        <span class="text-xs font-bold uppercase tracking-widest bg-white/20 px-3 py-1.5 rounded-full shadow-sm backdrop-blur-md">Goodday Member</span>
+        <p class="text-pink-100 text-sm mt-4 mb-1">Member ID</p>
+        <h2 id="prof-memberid" class="text-3xl font-bold tracking-widest mb-2">-</h2>
+        <h3 id="prof-name" class="text-lg font-semibold">-</h3>
       </div>
 
-      <div class="bg-gray-50 border rounded-xl p-4 mb-4">
-        <p class="text-xs font-bold text-gray-500 mb-1">ที่อยู่จัดส่ง</p>
-        <p id="prof-address" class="text-sm text-gray-700">ยังไม่ได้กรอกที่อยู่</p>
-        <button id="go-edit-address" class="text-pink-600 text-sm font-bold mt-2">แก้ไขที่อยู่ →</button>
+      <div class="bg-white border border-gray-100 rounded-xl shadow-sm p-4 mb-4">
+        <p class="text-xs font-bold text-gray-500 mb-1"><i class="fa-solid fa-map-location-dot theme-text mr-1"></i> ที่อยู่จัดส่ง</p>
+        <p id="prof-address" class="text-sm text-gray-700 mb-2">ยังไม่ได้กรอกที่อยู่</p>
+        <button id="go-edit-address" class="text-pink-600 text-sm font-bold">แก้ไขที่อยู่ →</button>
       </div>
 
-      <div id="waste-box" class="rounded-xl p-4 mb-4 text-white cursor-pointer"></div>
+      <!-- ✅ ทำเสร็จแล้ว -->
+      <div id="waste-box" class="rounded-xl p-4 mb-4 text-white cursor-pointer shadow-sm"></div>
 
-      <button id="btn-logout" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ออกจากระบบ</button>
+      <!-- 🚧 ยังไม่ได้ทำ - ใช้ placeholder ไปก่อน -->
+      <div onclick="openHealthForm()" class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-4 mb-4 text-white flex items-center justify-between cursor-pointer shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl"><i class="fa-solid fa-notes-medical"></i></div>
+          <div>
+            <h3 class="font-bold text-base leading-tight">กรอกข้อมูลสุขภาพ</h3>
+            <p class="text-blue-100 text-xs mt-0.5">ประเมินความเสี่ยงและวิเคราะห์ร่างกาย</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-lg opacity-50"></i>
+      </div>
+
+      <div onclick="openHealthHistory()" class="bg-white border-2 border-blue-100 rounded-xl p-4 mb-4 text-blue-800 flex items-center justify-between cursor-pointer shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-2xl"><i class="fa-solid fa-heart-pulse text-blue-500"></i></div>
+          <div>
+            <h3 class="font-bold text-base leading-tight">สมุดบันทึกสุขภาพ</h3>
+            <p class="text-gray-500 text-xs mt-0.5">ดูประวัติการตรวจย้อนหลัง</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-clock-rotate-left text-lg opacity-50"></i>
+      </div>
+
+      <div onclick="openWWWEntry()" class="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl p-4 mb-4 text-white flex items-center justify-between cursor-pointer shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl"><i class="fa-solid fa-ranking-star"></i></div>
+          <div>
+            <h3 class="font-bold text-base leading-tight">Well Well Well!</h3>
+            <p class="text-yellow-100 text-xs mt-0.5">ติดตามเป้าหมายสุขภาพ</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-lg opacity-50"></i>
+      </div>
+
+      <div onclick="notReady()" class="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-4 mb-4 text-white flex items-center justify-between cursor-pointer shadow-sm">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl"><i class="fa-solid fa-book-open-reader"></i></div>
+          <div>
+            <h3 class="font-bold text-base leading-tight">สมาชิกห้องสมุด</h3>
+            <p class="text-violet-100 text-xs mt-0.5">เข้าร่วมโครงการห้องสมุดสานพลัง</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-lg opacity-50"></i>
+      </div>
+
+      <button id="btn-logout" class="w-full text-gray-400 font-semibold py-3 text-sm hover:text-red-500 transition mt-2"><i class="fa-solid fa-power-off mr-1"></i> ออกจากระบบ</button>
     </div>
 
     <!-- หน้าแก้ไขที่อยู่ -->
-    <div id="edit-address-view" class="hidden">
-      <h2 class="text-xl font-bold text-pink-600 mb-4 text-center">แก้ไขที่อยู่จัดส่ง</h2>
-      <input id="addr-subdist" type="text" placeholder="ตำบล/แขวง" class="w-full border rounded-lg p-3 mb-3">
-      <input id="addr-dist" type="text" placeholder="อำเภอ/เขต" class="w-full border rounded-lg p-3 mb-3">
-      <select id="addr-prov" class="w-full border rounded-lg p-3 mb-3 bg-white">
-        <option value="">-- เลือกจังหวัด --</option>
-      </select>
-      <input id="addr-zip" type="text" placeholder="รหัสไปรษณีย์" class="w-full border rounded-lg p-3 mb-3">
-      <p id="addr-error" class="text-red-500 text-sm mb-3 hidden"></p>
-      <button id="btn-save-address" class="w-full bg-pink-600 text-white py-3 rounded-lg font-bold mb-2">บันทึกที่อยู่</button>
-      <button id="btn-cancel-address" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ยกเลิก</button>
+    <div id="edit-address-view" class="page-section p-4 pt-6">
+      <div class="flex items-center mb-6">
+        <button id="btn-cancel-address" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold text-gray-800">แก้ไขที่อยู่จัดส่ง</h2>
+      </div>
+      <div class="space-y-3">
+        <input id="addr-subdist" type="text" class="form-input" placeholder="ตำบล/แขวง *">
+        <input id="addr-dist" type="text" class="form-input" placeholder="อำเภอ/เขต *">
+        <select id="addr-prov" class="form-input bg-gray-50 font-bold">
+          <option value="">-- จังหวัด * --</option>
+        </select>
+        <input id="addr-zip" type="text" class="form-input" placeholder="รหัสไปรษณีย์ *">
+        <div id="addr-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden"></div>
+        <button id="btn-save-address" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-4 text-sm">บันทึกข้อมูล</button>
+      </div>
     </div>
 
     <!-- หน้าเข้าร่วม Waste for Wealth -->
-    <div id="waste-join-view" class="hidden">
-      <h2 class="text-xl font-bold text-emerald-600 mb-2 text-center">เข้าร่วม Waste for Wealth</h2>
-      <p class="text-xs text-gray-500 text-center mb-4">สะสมยอดขายขยะ ครบทุก 100 บาท รับสิทธิ์ส่วนลดสินค้า</p>
-      <input id="wj-house" type="text" placeholder="บ้านเลขที่" class="w-full border rounded-lg p-3 mb-3">
-      <input id="wj-subdist" type="text" placeholder="ตำบล/แขวง" class="w-full border rounded-lg p-3 mb-3">
-      <input id="wj-dist" type="text" placeholder="อำเภอ/เขต" class="w-full border rounded-lg p-3 mb-3">
-      <input id="wj-prov" type="text" placeholder="จังหวัด" class="w-full border rounded-lg p-3 mb-3">
-      <p id="wj-error" class="text-red-500 text-sm mb-3 hidden"></p>
-      <button id="btn-join-waste" class="w-full bg-emerald-500 text-white py-3 rounded-lg font-bold mb-2">ยืนยันเข้าร่วมโครงการ</button>
-      <button id="btn-cancel-waste-join" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ยกเลิก</button>
+    <div id="waste-join-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen">
+      <div class="flex items-center mb-4">
+        <button id="btn-cancel-waste-join" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold text-emerald-700">ลงทะเบียนเข้าร่วมโครงการ</h2>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-emerald-100">
+        <div class="text-xs text-gray-600 mb-4 leading-relaxed font-medium bg-emerald-50 p-3 rounded-lg">
+          <p class="font-bold text-emerald-700 mb-1"><i class="fa-solid fa-gift mr-1"></i> กติกาการสะสมยอดขยะ:</p>
+          สะสมยอดขายขยะ ครบทุก 100 บาท รับสิทธิ์ส่วนลดสินค้าทันที
+        </div>
+        <p class="text-xs font-bold text-gray-500 mb-2">กรุณาระบุที่อยู่จุดรับขยะของคุณ:</p>
+        <div class="space-y-2">
+          <input id="wj-house" type="text" class="form-input bg-gray-50" placeholder="บ้านเลขที่">
+          <input id="wj-subdist" type="text" class="form-input bg-gray-50" placeholder="ตำบล">
+          <input id="wj-dist" type="text" class="form-input bg-gray-50" placeholder="อำเภอ">
+          <input id="wj-prov" type="text" class="form-input bg-gray-50" placeholder="จังหวัด">
+        </div>
+        <div id="wj-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-3"></div>
+      </div>
+      <button id="btn-join-waste" class="w-full bg-emerald-500 text-white py-3.5 rounded-xl font-semibold shadow-md hover:bg-emerald-600 transition text-sm">ยืนยันเข้าร่วมโครงการ</button>
     </div>
 
     <!-- หน้าสมุดบันทึก Waste for Wealth -->
-    <div id="waste-logbook-view" class="hidden">
-      <h2 class="text-xl font-bold text-emerald-600 mb-4 text-center">สมุดสะสมยอดขยะ</h2>
-
-      <div class="bg-white border border-emerald-100 rounded-xl p-4 mb-4 text-center">
-        <p class="text-xs text-gray-400 font-bold">เงินสะสมทั้งหมด</p>
-        <p class="text-2xl font-black text-emerald-600"><span id="wl-total">0.00</span> บาท</p>
-        <div class="mt-2">
+    <div id="waste-logbook-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen">
+      <div class="flex items-center mb-4">
+        <button id="btn-back-from-logbook" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold text-emerald-800">สมุดสะสมยอดขยะ</h2>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-emerald-100 mb-4">
+        <div class="text-center mb-3">
+          <p class="text-[10px] text-gray-400 font-bold uppercase">เงินสะสมทั้งหมด</p>
+          <p class="text-2xl font-black text-emerald-600"><span id="wl-total">0.00</span> <span class="text-xs font-medium text-gray-500">บาท</span></p>
+        </div>
+        <div class="pt-2 border-t border-gray-50">
           <div class="flex justify-between text-[10px] font-bold text-gray-500 mb-1">
             <span>ความคืบหน้าสิทธิ์ถัดไป</span>
             <span id="wl-progress-text">0 / 100 บาท</span>
           </div>
           <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div id="wl-progress-bar" class="bg-emerald-500 h-2 rounded-full" style="width:0%"></div>
+            <div id="wl-progress-bar" class="bg-emerald-500 h-2 rounded-full transition-all" style="width:0%"></div>
           </div>
         </div>
       </div>
-
-      <h3 class="text-sm font-bold text-gray-700 mb-2">ประวัติการส่งขยะ</h3>
-      <div id="wl-history-list" class="space-y-2 mb-4"></div>
-
-      <button id="btn-back-from-logbook" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">กลับหน้าโปรไฟล์</button>
+      <h3 class="font-bold text-gray-700 text-xs mb-2 ml-1"><i class="fa-solid fa-history mr-1"></i> ประวัติการส่งขยะย้อนหลัง</h3>
+      <div id="wl-history-list" class="space-y-2 pb-10"></div>
     </div>
+
+    <!-- หน้ากรอกข้อมูลสุขภาพ -->
+<div id="health-form-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen">
+  <div class="flex items-center mb-4">
+    <button id="btn-cancel-health-form" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold text-blue-800">บันทึกข้อมูลสุขภาพ</h2>
+  </div>
+  <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 space-y-3">
+    <input id="hf-nickname" type="text" class="form-input bg-yellow-50" placeholder="ชื่อเล่น *">
+    <select id="hf-gender" class="form-input bg-blue-50">
+      <option value="">-- เพศ * --</option>
+      <option value="male">ชาย</option>
+      <option value="female">หญิง</option>
+    </select>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="hf-height" type="number" class="form-input" placeholder="ส่วนสูง (ซม.) *">
+      <input id="hf-weight" type="number" step="0.1" class="form-input" placeholder="น้ำหนัก (กก.) *">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="hf-fat" type="number" step="0.1" class="form-input" placeholder="ไขมัน (%)">
+      <input id="hf-visceral" type="number" class="form-input" placeholder="ไขมันช่องท้อง">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="hf-muscle" type="number" step="0.1" class="form-input" placeholder="กล้ามเนื้อ (%)">
+      <input id="hf-bodyage" type="number" class="form-input" placeholder="อายุร่างกาย (ปี)">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="hf-bmr" type="number" class="form-input" placeholder="BMR (Kcal)">
+      <input id="hf-waist" type="number" class="form-input" placeholder="รอบเอว (ซม.)">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="hf-sys" type="number" class="form-input" placeholder="ความดัน SYS">
+      <input id="hf-dia" type="number" class="form-input" placeholder="ความดัน DIA">
+    </div>
+    <input id="hf-disease" type="text" class="form-input" placeholder="โรคประจำตัว (ถ้ามี)">
+  </div>
+  <div id="hf-www-optin" class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 hidden">
+  <label class="flex items-start gap-2 cursor-pointer">
+    <input type="checkbox" id="hf-join-www" class="w-5 h-5 mt-0.5 text-amber-600">
+    <span class="text-xs text-amber-800 font-bold">เข้าร่วมโครงการ Well Well Well! ไปพร้อมกัน นำข้อมูลนี้ไปสร้างกราฟติดตามผล</span>
+  </label>
+</div>
+  <div id="hf-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mb-3"></div>
+  <button id="btn-save-health" class="w-full bg-blue-600 text-white py-3.5 rounded-xl font-semibold shadow-md hover:bg-blue-700 transition text-sm">บันทึกข้อมูลเข้าสู่ระบบ</button>
+</div>
+
+<!-- หน้าสมุดพกสุขภาพ (ประวัติ) -->
+<div id="health-history-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen">
+  <div class="flex items-center mb-4">
+    <button id="btn-back-from-health" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold text-blue-800">สมุดพกสุขภาพ</h2>
+  </div>
+    <div id="health-charts-container" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4 hidden">
+    <div class="flex items-center border-b p-2"><div class="w-16 text-[10px] font-bold text-gray-600">น้ำหนัก</div><div class="flex-1 h-16 relative"><canvas id="chart-h-weight"></canvas></div></div>
+    <div class="flex items-center border-b p-2"><div class="w-16 text-[10px] font-bold text-gray-600">ไขมัน %</div><div class="flex-1 h-16 relative"><canvas id="chart-h-fat"></canvas></div></div>
+    <div class="flex items-center border-b p-2"><div class="w-16 text-[10px] font-bold text-gray-600">กล้ามเนื้อ %</div><div class="flex-1 h-16 relative"><canvas id="chart-h-muscle"></canvas></div></div>
+    <div class="flex items-center p-2"><div class="w-16 text-[10px] font-bold text-gray-600">BMR</div><div class="flex-1 h-20 relative"><canvas id="chart-h-bmr"></canvas></div></div>
+  </div>
+  <div id="health-history-list" class="space-y-3 pb-10"></div>
+</div>
+
+<!-- ขั้น 1: เลือกเป้าหมาย -->
+<div id="www-wizard-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen pb-24">
+  <div class="flex items-center mb-4">
+    <button id="btn-cancel-wizard" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border border-gray-200"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold theme-text">ตั้งเป้าหมายสุขภาพ</h2>
+  </div>
+  <div id="wizard-goals-container" class="space-y-3 mb-4"></div>
+  <label class="text-sm font-bold theme-text mb-2 block">เป้าหมายประจำเดือนนี้</label>
+  <textarea id="wiz-monthly-goal" rows="3" class="form-input" placeholder="เช่น เดือนนี้ฉันจะนอนให้ครบ 8 ชม. ทุกวัน..."></textarea>
+  <div id="wiz-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-3"></div>
+  <button id="btn-wizard-next" class="w-full theme-pink text-white py-3.5 rounded-xl font-bold shadow-md mt-4">ถัดไป</button>
+</div>
+
+<!-- ขั้น 2: กรอกร่างกายเริ่มต้น -->
+<div id="www-bodydata-view" class="page-section p-4 pt-6 bg-white min-h-screen">
+  <div class="flex items-center mb-4">
+    <button id="btn-back-to-wizard" class="w-8 h-8 bg-gray-100 rounded-full text-gray-600 mr-3"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold theme-text">ข้อมูลร่างกายเริ่มต้น</h2>
+  </div>
+  <div class="space-y-3">
+    <input id="wbd-weight" type="number" step="0.1" class="form-input bg-pink-50 font-bold" placeholder="น้ำหนัก (kg) *">
+    <div class="grid grid-cols-2 gap-2">
+      <input id="wbd-fat" type="number" step="0.1" class="form-input" placeholder="ไขมัน (%)">
+      <input id="wbd-visceral" type="number" class="form-input" placeholder="ไขมันช่องท้อง">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="wbd-muscle" type="number" step="0.1" class="form-input" placeholder="กล้ามเนื้อ (%)">
+      <input id="wbd-bodyage" type="number" class="form-input" placeholder="อายุร่างกาย (ปี)">
+    </div>
+    <input id="wbd-bmr" type="number" class="form-input" placeholder="BMR (Kcal)">
+    <input id="wbd-ambassador" type="text" class="form-input" placeholder="ผู้แนะนำของคุณ *">
+  </div>
+  <div id="wbd-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-3"></div>
+  <button id="btn-submit-www" class="w-full theme-pink text-white py-3.5 rounded-xl font-bold shadow-md mt-4">ยืนยันเข้าร่วมโครงการ</button>
+</div>
+
+<!-- หน้ารวม (hub) หลังเข้าร่วมแล้ว -->
+<div id="www-hub-view" class="page-section p-4 pt-6 bg-pink-50 min-h-screen">
+  <div class="flex items-center mb-6">
+    <button id="btn-back-hub" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border border-pink-200"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold theme-text">Well Well Well!</h2>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <div id="btn-open-update" class="bg-white rounded-xl p-4 border-2 border-pink-300 cursor-pointer text-center min-h-[110px] flex flex-col items-center justify-center">
+      <i class="fa-solid fa-pen-to-square text-2xl theme-text mb-2"></i>
+      <p class="font-bold text-sm theme-text">อัปเดตข้อมูล<br>องค์ประกอบร่างกาย</p>
+    </div>
+    <div id="btn-open-history" class="bg-white rounded-xl p-4 border-2 border-pink-300 cursor-pointer text-center min-h-[110px] flex flex-col items-center justify-center">
+      <i class="fa-solid fa-chart-pie text-2xl theme-text mb-2"></i>
+      <p class="font-bold text-sm theme-text">โปรไฟล์ร่างกาย</p>
+    </div>
+  </div>
+</div>
+
+<!-- อัปเดตข้อมูล -->
+<div id="www-update-view" class="page-section p-4 pt-6 bg-white min-h-screen">
+  <div class="flex items-center mb-4">
+    <button id="btn-cancel-update" class="w-8 h-8 bg-gray-100 rounded-full text-gray-600 mr-3"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold theme-text">อัปเดตข้อมูล</h2>
+  </div>
+  <div class="space-y-3">
+    <input id="wu-weight" type="number" step="0.1" class="form-input bg-pink-50 font-bold" placeholder="น้ำหนัก (kg) *">
+    <div class="grid grid-cols-2 gap-2">
+      <input id="wu-fat" type="number" step="0.1" class="form-input" placeholder="ไขมัน (%)">
+      <input id="wu-visceral" type="number" class="form-input" placeholder="ไขมันช่องท้อง">
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <input id="wu-muscle" type="number" step="0.1" class="form-input" placeholder="กล้ามเนื้อ (%)">
+      <input id="wu-bodyage" type="number" class="form-input" placeholder="อายุร่างกาย (ปี)">
+    </div>
+    <input id="wu-bmr" type="number" class="form-input" placeholder="BMR (Kcal)">
+    <input id="wu-ambassador" type="text" class="form-input" placeholder="ผู้แนะนำของคุณ *">
+  </div>
+  <div id="wu-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-3"></div>
+  <button id="btn-save-update" class="w-full theme-pink text-white py-3.5 rounded-xl font-bold shadow-md mt-4">บันทึกข้อมูล</button>
+</div>
+
+<!-- ประวัติ -->
+<div id="www-history-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen">
+  <div class="flex items-center mb-4">
+    <button id="btn-back-history" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border"><i class="fa-solid fa-arrow-left"></i></button>
+    <h2 class="text-lg font-bold theme-text">ประวัติองค์ประกอบร่างกาย</h2>
+  </div>
+    <div id="www-charts-container" class="bg-white rounded-xl shadow-sm border border-pink-100 overflow-hidden mb-4 hidden">
+    <div class="flex items-center border-b p-2"><div class="w-16 text-[10px] font-bold text-gray-600">น้ำหนัก</div><div class="flex-1 h-16 relative"><canvas id="chart-w-weight"></canvas></div></div>
+    <div class="flex items-center border-b p-2"><div class="w-16 text-[10px] font-bold text-gray-600">ไขมัน %</div><div class="flex-1 h-16 relative"><canvas id="chart-w-fat"></canvas></div></div>
+    <div class="flex items-center p-2"><div class="w-16 text-[10px] font-bold text-gray-600">กล้ามเนื้อ %</div><div class="flex-1 h-16 relative"><canvas id="chart-w-muscle"></canvas></div></div>
+  </div>
+  <div id="www-history-list" class="space-y-3 pb-10"></div>
+</div>
 
   </div>
   <script type="module" src="/src/main.js"></script>
