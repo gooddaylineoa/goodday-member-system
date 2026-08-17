@@ -5,11 +5,11 @@ import {
   onAuthStateChanged,
   signOut
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 
 // --- สลับหน้า ---
 function showView(id) {
-  document.querySelectorAll('#login-view, #register-view, #profile-view, #edit-address-view')
+  document.querySelectorAll('#login-view, #register-view, #profile-view, #edit-address-view, #waste-join-view, #waste-logbook-view')
     .forEach(el => el.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
@@ -143,7 +143,6 @@ async function loadProfile(uid) {
     document.getElementById('prof-memberid').innerText = data.memberId;
     document.getElementById('prof-name').innerText = data.name;
 
-    // เพิ่มบรรทัดนี้
     if (data.profileImage) {
       document.getElementById('prof-pic').src = data.profileImage;
     }
@@ -155,47 +154,86 @@ async function loadProfile(uid) {
     } else {
       addrBox.innerText = 'ยังไม่ได้กรอกที่อยู่';
     }
+
+    renderWasteBox(data);   // ← เพิ่มบรรทัดนี้
   }
 }
 
-// ⚠️ แทนที่ 2 ค่านี้ด้วยของพี่เองจาก Cloudinary
-const CLOUDINARY_CLOUD_NAME = 'l1htg1ks';
-const CLOUDINARY_UPLOAD_PRESET = 'goodday_unsigned';
+// --- แสดงกล่อง Waste box ในหน้าโปรไฟล์ ตามสถานะ ---
+function renderWasteBox(data) {
+  const box = document.getElementById('waste-box');
+  if (data.wasteMoney) {
+    box.className = 'rounded-xl p-4 mb-4 text-white cursor-pointer bg-emerald-500';
+    box.innerHTML = `<p class="font-bold">สมุดสะสม Waste for Wealth</p><p class="text-xs opacity-80">ดูยอดสะสมและประวัติของฉัน</p>`;
+    box.onclick = openWasteLogbook;
+  } else {
+    box.className = 'rounded-xl p-4 mb-4 text-white cursor-pointer bg-emerald-500';
+    box.innerHTML = `<p class="font-bold">Waste for Wealth</p><p class="text-xs opacity-80">สะสมยอดขายขยะ เปลี่ยนเป็นส่วนลดสินค้า</p>`;
+    box.onclick = () => showView('waste-join-view');
+  }
+}
 
-document.getElementById('btn-change-pic').onclick = () => {
-  document.getElementById('pic-input').click(); // จำลองการกดปุ่มเลือกไฟล์จริง
-};
+document.getElementById('btn-cancel-waste-join').onclick = () => showView('profile-view');
 
-document.getElementById('pic-input').onchange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+document.getElementById('btn-join-waste').onclick = async () => {
+  const house = document.getElementById('wj-house').value.trim();
+  const subdist = document.getElementById('wj-subdist').value.trim();
+  const dist = document.getElementById('wj-dist').value.trim();
+  const prov = document.getElementById('wj-prov').value.trim();
+  const errorBox = document.getElementById('wj-error');
 
-  const statusBox = document.getElementById('pic-status');
-  statusBox.innerText = 'กำลังอัปโหลด...';
-  statusBox.classList.remove('hidden');
-
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  if (!house || !subdist || !dist || !prov) {
+    errorBox.innerText = 'กรุณากรอกข้อมูลให้ครบ';
+    errorBox.classList.remove('hidden');
+    return;
+  }
 
   try {
-    const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      { method: 'POST', body: formData }
-    );
-    const data = await res.json();
-
-    if (data.secure_url) {
-      // เก็บลิงก์รูปไว้ใน Firestore
-      await updateDoc(doc(db, 'users', currentUid), {
-        profileImage: data.secure_url
-      });
-      document.getElementById('prof-pic').src = data.secure_url;
-      statusBox.classList.add('hidden');
-    } else {
-      statusBox.innerText = 'อัปโหลดไม่สำเร็จ';
-    }
+    await updateDoc(doc(db, 'users', currentUid), {
+      wasteMoney: true,
+      wastePickupAddress: { house, subdist, dist, prov }
+    });
+    errorBox.classList.add('hidden');
+    await loadProfile(currentUid);
+    showView('profile-view');
   } catch (err) {
-    statusBox.innerText = 'เกิดข้อผิดพลาด: ' + err.message;
+    errorBox.innerText = 'เกิดข้อผิดพลาด: ' + err.message;
+    errorBox.classList.remove('hidden');
   }
 };
+
+document.getElementById('btn-back-from-logbook').onclick = () => showView('profile-view');
+
+// --- เปิดสมุดบันทึก: ดึง log ทั้งหมดจาก sub-collection มารวมยอด ---
+async function openWasteLogbook() {
+  showView('waste-logbook-view');
+  const listBox = document.getElementById('wl-history-list');
+  listBox.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">กำลังโหลด...</p>';
+
+  const logsRef = collection(db, 'users', currentUid, 'wasteLogs');
+  const snap = await getDocs(logsRef);
+
+  let total = 0;
+  const logs = [];
+  snap.forEach(docSnap => {
+    const d = docSnap.data();
+    total += d.amount || 0;
+    logs.push(d);
+  });
+
+  document.getElementById('wl-total').innerText = total.toFixed(2);
+  const remaining = total % 100;
+  document.getElementById('wl-progress-text').innerText = `${remaining.toFixed(0)} / 100 บาท`;
+  document.getElementById('wl-progress-bar').style.width = remaining + '%';
+
+  if (logs.length === 0) {
+    listBox.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">ยังไม่มีประวัติการส่งขยะ</p>';
+  } else {
+    listBox.innerHTML = logs.map(l => `
+      <div class="bg-white border rounded-lg p-3 flex justify-between items-center">
+        <span class="text-sm text-gray-600">${l.date || '-'}</span>
+        <span class="font-bold text-emerald-600">+${(l.amount || 0).toFixed(2)} บาท</span>
+      </div>
+    `).join('');
+  }
+}

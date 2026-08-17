@@ -57,6 +57,8 @@
         <button id="go-edit-address" class="text-pink-600 text-sm font-bold mt-2">แก้ไขที่อยู่ →</button>
       </div>
 
+      <div id="waste-box" class="rounded-xl p-4 mb-4 text-white cursor-pointer"></div>
+
       <button id="btn-logout" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ออกจากระบบ</button>
     </div>
 
@@ -72,6 +74,43 @@
       <p id="addr-error" class="text-red-500 text-sm mb-3 hidden"></p>
       <button id="btn-save-address" class="w-full bg-pink-600 text-white py-3 rounded-lg font-bold mb-2">บันทึกที่อยู่</button>
       <button id="btn-cancel-address" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ยกเลิก</button>
+    </div>
+
+    <!-- หน้าเข้าร่วม Waste for Wealth -->
+    <div id="waste-join-view" class="hidden">
+      <h2 class="text-xl font-bold text-emerald-600 mb-2 text-center">เข้าร่วม Waste for Wealth</h2>
+      <p class="text-xs text-gray-500 text-center mb-4">สะสมยอดขายขยะ ครบทุก 100 บาท รับสิทธิ์ส่วนลดสินค้า</p>
+      <input id="wj-house" type="text" placeholder="บ้านเลขที่" class="w-full border rounded-lg p-3 mb-3">
+      <input id="wj-subdist" type="text" placeholder="ตำบล/แขวง" class="w-full border rounded-lg p-3 mb-3">
+      <input id="wj-dist" type="text" placeholder="อำเภอ/เขต" class="w-full border rounded-lg p-3 mb-3">
+      <input id="wj-prov" type="text" placeholder="จังหวัด" class="w-full border rounded-lg p-3 mb-3">
+      <p id="wj-error" class="text-red-500 text-sm mb-3 hidden"></p>
+      <button id="btn-join-waste" class="w-full bg-emerald-500 text-white py-3 rounded-lg font-bold mb-2">ยืนยันเข้าร่วมโครงการ</button>
+      <button id="btn-cancel-waste-join" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ยกเลิก</button>
+    </div>
+
+    <!-- หน้าสมุดบันทึก Waste for Wealth -->
+    <div id="waste-logbook-view" class="hidden">
+      <h2 class="text-xl font-bold text-emerald-600 mb-4 text-center">สมุดสะสมยอดขยะ</h2>
+
+      <div class="bg-white border border-emerald-100 rounded-xl p-4 mb-4 text-center">
+        <p class="text-xs text-gray-400 font-bold">เงินสะสมทั้งหมด</p>
+        <p class="text-2xl font-black text-emerald-600"><span id="wl-total">0.00</span> บาท</p>
+        <div class="mt-2">
+          <div class="flex justify-between text-[10px] font-bold text-gray-500 mb-1">
+            <span>ความคืบหน้าสิทธิ์ถัดไป</span>
+            <span id="wl-progress-text">0 / 100 บาท</span>
+          </div>
+          <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+            <div id="wl-progress-bar" class="bg-emerald-500 h-2 rounded-full" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="text-sm font-bold text-gray-700 mb-2">ประวัติการส่งขยะ</h3>
+      <div id="wl-history-list" class="space-y-2 mb-4"></div>
+
+      <button id="btn-back-from-logbook" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">กลับหน้าโปรไฟล์</button>
     </div>
 
   </div>
