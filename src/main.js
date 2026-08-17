@@ -1,60 +1,86 @@
-import './style.css'
-import javascriptLogo from './assets/javascript.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import { setupCounter } from './counter.js'
+import { auth, db } from './firebase.js';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
-document.querySelector('#app').innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${javascriptLogo}" class="framework" alt="JavaScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.js</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+// --- สลับหน้า ---
+function showView(id) {
+  document.querySelectorAll('#login-view, #register-view, #profile-view')
+    .forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
 
-<div class="ticks"></div>
+document.getElementById('go-register').onclick = () => showView('register-view');
+document.getElementById('go-login').onclick = () => showView('login-view');
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-          <img class="button-icon" src="${javascriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+// --- สมัครสมาชิก ---
+document.getElementById('btn-register').onclick = async () => {
+  const name = document.getElementById('reg-name').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const errorBox = document.getElementById('reg-error');
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+  if (!name || !phone || !email || !pass) {
+    errorBox.innerText = 'กรุณากรอกข้อมูลให้ครบ';
+    errorBox.classList.remove('hidden');
+    return;
+  }
 
-setupCounter(document.querySelector('#counter'))
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    const uid = result.user.uid;
+    const memberId = 'GD-' + uid.slice(0, 5).toUpperCase();
+
+    await setDoc(doc(db, 'users', uid), {
+      memberId, name, phone, email,
+      wasteMoney: false,
+      wellProject: 'no',
+      gender: 'unspecified',
+      libraryMember: false,
+      createdAt: new Date()
+    });
+
+    errorBox.classList.add('hidden');
+  } catch (err) {
+    errorBox.innerText = 'สมัครไม่สำเร็จ: ' + err.message;
+    errorBox.classList.remove('hidden');
+  }
+};
+
+// --- เข้าสู่ระบบ ---
+document.getElementById('btn-login').onclick = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errorBox = document.getElementById('login-error');
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    errorBox.classList.add('hidden');
+  } catch (err) {
+    errorBox.innerText = 'เข้าสู่ระบบไม่สำเร็จ: ' + err.message;
+    errorBox.classList.remove('hidden');
+  }
+};
+
+// --- ออกจากระบบ ---
+document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+// --- เช็คสถานะล็อกอินตลอดเวลา ---
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      document.getElementById('prof-memberid').innerText = data.memberId;
+      document.getElementById('prof-name').innerText = data.name;
+    }
+    showView('profile-view');
+  } else {
+    showView('login-view');
+  }
+});

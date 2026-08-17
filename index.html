@@ -1,13 +1,51 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>member-system</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goodday Member</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-md mx-auto bg-white min-h-screen p-4 pt-10">
+
+    <!-- หน้า Login -->
+    <div id="login-view">
+      <h2 class="text-xl font-bold text-pink-600 mb-4 text-center">เข้าสู่ระบบ</h2>
+      <input id="login-email" type="email" placeholder="อีเมล" class="w-full border rounded-lg p-3 mb-3">
+      <input id="login-pass" type="password" placeholder="รหัสผ่าน" class="w-full border rounded-lg p-3 mb-3">
+      <p id="login-error" class="text-red-500 text-sm mb-3 hidden"></p>
+      <button id="btn-login" class="w-full bg-pink-600 text-white py-3 rounded-lg font-bold">เข้าสู่ระบบ</button>
+      <p class="text-center text-sm mt-4">
+        ยังไม่มีบัญชี? <button id="go-register" class="text-pink-600 font-bold">สมัครสมาชิก</button>
+      </p>
+    </div>
+
+    <!-- หน้า Register -->
+    <div id="register-view" class="hidden">
+      <h2 class="text-xl font-bold text-pink-600 mb-4 text-center">สมัครสมาชิก</h2>
+      <input id="reg-name" type="text" placeholder="ชื่อ-นามสกุล" class="w-full border rounded-lg p-3 mb-3">
+      <input id="reg-phone" type="tel" placeholder="เบอร์โทรศัพท์" class="w-full border rounded-lg p-3 mb-3">
+      <input id="reg-email" type="email" placeholder="อีเมล" class="w-full border rounded-lg p-3 mb-3">
+      <input id="reg-pass" type="password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)" class="w-full border rounded-lg p-3 mb-3">
+      <p id="reg-error" class="text-red-500 text-sm mb-3 hidden"></p>
+      <button id="btn-register" class="w-full bg-pink-600 text-white py-3 rounded-lg font-bold">สมัครสมาชิก</button>
+      <p class="text-center text-sm mt-4">
+        มีบัญชีแล้ว? <button id="go-login" class="text-pink-600 font-bold">เข้าสู่ระบบ</button>
+      </p>
+    </div>
+
+    <!-- หน้า Profile -->
+    <div id="profile-view" class="hidden">
+      <div class="bg-pink-600 text-white rounded-xl p-5 mb-6">
+        <p class="text-sm opacity-80">Member ID</p>
+        <h2 id="prof-memberid" class="text-2xl font-bold">-</h2>
+        <h3 id="prof-name" class="text-lg mt-2">-</h3>
+      </div>
+      <button id="btn-logout" class="w-full bg-gray-200 text-gray-600 py-3 rounded-lg font-bold">ออกจากระบบ</button>
+    </div>
+
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>
