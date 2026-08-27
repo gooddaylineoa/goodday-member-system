@@ -77,26 +77,29 @@ document.getElementById('btn-login-line').onclick = () => {
 };
 
 document.getElementById('btn-login').onclick = async () => {
-  const email = document.getElementById('login-email').value.trim();
+  const phone = document.getElementById('login-phone').value.trim();
   const pass = document.getElementById('login-pass').value;
   const errBox = document.getElementById('login-error');
 
-  if (!email || !pass) {
-    errBox.innerText = 'กรุณากรอกอีเมลและรหัสผ่านให้ครบ';
+  if (!phone || !pass) {
+    errBox.innerText = 'กรุณากรอกเบอร์โทรศัพท์และรหัสผ่านให้ครบ';
     errBox.classList.remove('hidden');
     return;
   }
 
+  showLoading('กำลังเข้าสู่ระบบ...');
   try {
-    await signInWithEmailAndPassword(auth, email, pass);
+    await signInWithEmailAndPassword(auth, phoneToSyntheticEmail(phone), pass);
     errBox.classList.add('hidden');
   } catch (err) {
     let msg = 'เข้าสู่ระบบไม่สำเร็จ';
     if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
-      msg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+      msg = 'เบอร์โทรศัพท์หรือรหัสผ่านไม่ถูกต้อง';
     }
     errBox.innerText = msg;
     errBox.classList.remove('hidden');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -160,6 +163,10 @@ document.getElementById('btn-save-address').onclick = async () => {
     showToast('บันทึกไม่สำเร็จ: ' + err.message, 'error');
   }
 };
+
+function phoneToSyntheticEmail(phone) {
+  return `${phone.replace(/-/g, '')}@goodday.local`;
+}
 
 // แยกฟังก์ชันโหลดโปรไฟล์ออกมา เพื่อเรียกซ้ำได้ (ตอน login และตอนบันทึกที่อยู่เสร็จ)
 async function loadProfile(uid) {
@@ -2040,14 +2047,26 @@ function renderRegisterProvinceOptions() {
 }
 
 // คำนวณอายุจากวันเกิดอัตโนมัติ
+// คำนวณอายุ + แปลง พ.ศ. จากวันเกิดอัตโนมัติ
 document.getElementById('r1-birthdate').oninput = (e) => {
   const bd = new Date(e.target.value);
-  if (isNaN(bd)) return;
+  const infoBox = document.getElementById('r1-birthdate-info');
+
+  if (isNaN(bd)) {
+    infoBox.classList.add('hidden');
+    return;
+  }
+
   const today = new Date();
   let age = today.getFullYear() - bd.getFullYear();
   const m = today.getMonth() - bd.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
+
   document.getElementById('r1-age').value = age;
+
+  const buddhistYear = bd.getFullYear() + 543;
+  infoBox.innerHTML = `<i class="fa-solid fa-circle-info mr-1"></i> เกิดปี พ.ศ. ${buddhistYear} — อายุ ${age} ปี`;
+  infoBox.classList.remove('hidden');
 };
 
 // สลับโหมด ไม่ทราบวันเกิด
@@ -2061,33 +2080,15 @@ document.getElementById('r1-no-birthdate').onchange = (e) => {
   else document.getElementById('r1-age').readOnly = true;
 };
 
-document.getElementById('r2-no-email').onchange = (e) => {
-  const noEmail = e.target.checked;
-  document.getElementById('r2-email').disabled = noEmail;
-  document.getElementById('r2-email').value = '';
-  document.getElementById('r2-password').disabled = noEmail;
-  document.getElementById('r2-password2').disabled = noEmail;
-  if (noEmail) {
-    document.getElementById('r2-password').value = '';
-    document.getElementById('r2-password2').value = '';
-  }
-};
-
 document.getElementById('btn-r1-next').onclick = () => {
   const fullname = document.getElementById('r1-fullname').value.trim();
-  const phone = document.getElementById('r1-phone').value.trim();
   const noBirthdate = document.getElementById('r1-no-birthdate').checked;
   const birthdate = document.getElementById('r1-birthdate').value;
   const birthyear = document.getElementById('r1-birthyear').value;
   const errBox = document.getElementById('r1-error');
 
-  if (!fullname || !phone) {
-    errBox.innerText = 'กรุณากรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ให้ครบ';
-    errBox.classList.remove('hidden');
-    return;
-  }
-  if (!/^[0-9]{9,10}$/.test(phone.replace(/-/g, ''))) {
-    errBox.innerText = 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง';
+  if (!fullname) {
+    errBox.innerText = 'กรุณากรอกชื่อ-นามสกุล';
     errBox.classList.remove('hidden');
     return;
   }
@@ -2105,7 +2106,6 @@ document.getElementById('btn-r1-next').onclick = () => {
 
   registerState.title = document.getElementById('r1-title').value.trim();
   registerState.fullname = fullname;
-  registerState.phone = phone;
   registerState.lineIdInput = document.getElementById('r1-lineid').value.trim();
   registerState.birthdate = noBirthdate ? `01/01/${birthyear}` : birthdate;
   registerState.age = document.getElementById('r1-age').value || null;
@@ -2124,38 +2124,40 @@ document.getElementById('btn-pdpa-link').onclick = () => {
 let registerState = {};
 
 document.getElementById('btn-r2-submit').onclick = async () => {
+  const phone = document.getElementById('r2-phone').value.trim();
   const subdist = document.getElementById('r2-subdist').value.trim();
   const dist = document.getElementById('r2-dist').value.trim();
   const prov = document.getElementById('r2-prov').value;
   const zip = document.getElementById('r2-zip').value.trim();
   const pdpaChecked = document.getElementById('r2-pdpa').checked;
-  const noEmail = document.getElementById('r2-no-email').checked;
-  const email = document.getElementById('r2-email').value.trim();
   const password = document.getElementById('r2-password').value;
   const password2 = document.getElementById('r2-password2').value;
   const errBox = document.getElementById('r2-error');
 
+  if (!phone) {
+    errBox.innerText = 'กรุณากรอกเบอร์โทรศัพท์';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  if (!/^[0-9]{9,10}$/.test(phone.replace(/-/g, ''))) {
+    errBox.innerText = 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง';
+    errBox.classList.remove('hidden');
+    return;
+  }
   if (!subdist || !dist || !prov || !zip) {
     errBox.innerText = 'กรุณากรอกที่อยู่ให้ครบ';
     errBox.classList.remove('hidden');
     return;
   }
-  if (!noEmail) {
-    if (!email || !email.includes('@')) {
-      errBox.innerText = 'กรุณากรอกอีเมลให้ถูกต้อง หรือติ๊กไม่ระบุอีเมล';
-      errBox.classList.remove('hidden');
-      return;
-    }
-    if (!password || password.length < 8) {
-      errBox.innerText = 'กรุณาตั้งรหัสผ่านอย่างน้อย 8 ตัวอักษร';
-      errBox.classList.remove('hidden');
-      return;
-    }
-    if (password !== password2) {
-      errBox.innerText = 'รหัสผ่านทั้งสองช่องไม่ตรงกัน';
-      errBox.classList.remove('hidden');
-      return;
-    }
+  if (!password || password.length < 8) {
+    errBox.innerText = 'กรุณาตั้งรหัสผ่านอย่างน้อย 8 ตัวอักษร';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  if (password !== password2) {
+    errBox.innerText = 'รหัสผ่านทั้งสองช่องไม่ตรงกัน';
+    errBox.classList.remove('hidden');
+    return;
   }
   if (!pdpaChecked) {
     errBox.innerText = 'กรุณายอมรับนโยบาย PDPA ก่อนสมัครสมาชิก';
@@ -2164,13 +2166,29 @@ document.getElementById('btn-r2-submit').onclick = async () => {
   }
   errBox.classList.add('hidden');
 
+  showLoading('กำลังตรวจสอบข้อมูล...');
+
+  // 🆕 เช็คเบอร์ซ้ำตรงนี้แทน (ย้ายมาจากหน้า 1/2)
+  const dupQ = query(collection(db, 'users'), where('phone', '==', phone));
+  const dupSnap = await getDocs(dupQ);
+  const isDuplicate = dupSnap.docs.some(d => d.id !== currentUid);
+
+  if (isDuplicate) {
+    hideLoading();
+    errBox.innerText = 'เบอร์โทรศัพท์นี้มีการสมัครสมาชิกไปแล้ว กรุณาใช้เบอร์อื่น';
+    errBox.classList.remove('hidden');
+    return;
+  }
+
   showLoading('กำลังสร้างบัญชีสมาชิก...');
 
   try {
-    // ผูกอีเมล/รหัสผ่านเข้ากับบัญชี LINE เดิม (เฉพาะถ้าเลือกใส่อีเมล)
-    if (!noEmail) {
-      const credential = EmailAuthProvider.credential(email, password);
+    const syntheticEmail = phoneToSyntheticEmail(phone);
+    try {
+      const credential = EmailAuthProvider.credential(syntheticEmail, password);
       await linkWithCredential(auth.currentUser, credential);
+    } catch (linkErr) {
+      if (linkErr.code !== 'auth/provider-already-linked') throw linkErr;
     }
 
     const memberId = await generateUniqueMemberId();
@@ -2178,13 +2196,12 @@ document.getElementById('btn-r2-submit').onclick = async () => {
     await updateDoc(doc(db, 'users', currentUid), {
       title: registerState.title || '',
       name: registerState.fullname,
-      phone: registerState.phone,
+      phone: phone,
       lineIdInput: registerState.lineIdInput || '',
       birthdate: registerState.birthdate,
       birthdateUnknown: registerState.birthdateUnknown,
       age: registerState.age,
-      email: noEmail ? '' : email,
-      hasPasswordLogin: !noEmail,
+      hasPasswordLogin: true,
       address: { subdist, dist, prov, zip },
       pdpaAccepted: true,
       pdpaAcceptedAt: serverTimestamp(),
@@ -2200,9 +2217,7 @@ document.getElementById('btn-r2-submit').onclick = async () => {
   } catch (err) {
     hideLoading();
     let msg = err.message;
-    if (err.code === 'auth/email-already-in-use') {
-      msg = 'อีเมลนี้ถูกใช้ผูกกับบัญชีอื่นแล้ว กรุณาใช้อีเมลอื่น';
-    } else if (err.code === 'auth/weak-password') {
+    if (err.code === 'auth/weak-password') {
       msg = 'รหัสผ่านไม่ปลอดภัยพอ กรุณาตั้งรหัสผ่านที่ซับซ้อนกว่านี้';
     }
     showToast('เกิดข้อผิดพลาด: ' + msg, 'error');
