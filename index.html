@@ -198,8 +198,11 @@
       <h2 class="text-lg font-bold theme-text mb-1">สร้างบัญชี (1/2)</h2>
       <p class="text-xs text-gray-400 mb-5">กรอกข้อมูลส่วนตัวของท่าน</p>
 
-      <input id="r1-title" type="text" class="form-input" placeholder="คำนำหน้า">
-      <input id="r1-fullname" type="text" class="form-input" placeholder="ชื่อ-นามสกุล *">
+      <div class="space-y-4">
+        <div class="grid grid-cols-3 gap-2">
+          <input id="r1-title" type="text" class="form-input col-span-1" placeholder="คำนำหน้า">
+          <input id="r1-fullname" type="text" class="form-input col-span-2" placeholder="ชื่อ-นามสกุล *">
+        </div>
 
         <div>
           <label class="text-xs font-bold text-gray-500 mb-1 block">วัน/เดือน/ปีเกิด *</label>
@@ -220,6 +223,7 @@
 
         <input id="r1-phone" type="tel" class="form-input" placeholder="เบอร์โทรศัพท์ *">
         <input id="r1-lineid" type="text" class="form-input" placeholder="LINE ID (ไม่บังคับ)">
+      </div>
 
       <div id="r1-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-4"></div>
       <button id="btn-r1-next" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-4 text-sm">ถัดไป</button>
