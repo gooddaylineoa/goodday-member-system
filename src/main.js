@@ -2107,6 +2107,7 @@ document.getElementById('btn-r1-next').onclick = () => {
   registerState.title = document.getElementById('r1-title').value.trim();
   registerState.fullname = fullname;
   registerState.lineIdInput = document.getElementById('r1-lineid').value.trim();
+  registerState.email = document.getElementById('r1-email').value.trim();
   registerState.birthdate = noBirthdate ? `01/01/${birthyear}` : birthdate;
   registerState.age = document.getElementById('r1-age').value || null;
   registerState.birthdateUnknown = noBirthdate;

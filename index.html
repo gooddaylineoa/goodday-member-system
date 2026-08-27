@@ -222,8 +222,11 @@
           <p class="text-[10px] text-gray-400 mt-1">ระบบคำนวณจากวันเกิดอัตโนมัติ</p>
         </div>
 
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">อีเมล (ไม่บังคับ)</label>
+          <input id="r1-email" type="email" class="form-input" placeholder="example@email.com">
+        </div>
         <input id="r1-lineid" type="text" class="form-input" placeholder="LINE ID (ไม่บังคับ)">
-      </div>
 
       <div id="r1-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-4"></div>
       <button id="btn-r1-next" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-4 text-sm">ถัดไป</button>
@@ -247,7 +250,7 @@
         </div>
         <input id="r2-password2" type="password" class="form-input" placeholder="ยืนยันรหัสผ่านอีกครั้ง *">
 
-        <p class="text-xs font-bold text-gray-500 -mb-2">ที่อยู่ปัจจุบัน</p>
+        <p class="text-xs font-bold text-gray-500">ที่อยู่ปัจจุบัน</p>
         <div class="grid grid-cols-2 gap-2">
           <input id="r2-subdist" type="text" class="form-input" placeholder="ตำบล/แขวง *">
           <input id="r2-dist" type="text" class="form-input" placeholder="อำเภอ/เขต *">
