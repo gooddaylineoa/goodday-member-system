@@ -18,17 +18,32 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'ใช้ได้เฉพาะ POST เท่านั้น' });
   }
 
-  const { phone, excludeUid } = req.body;
-  if (!phone) {
-    return res.status(400).json({ error: 'ไม่พบเบอร์โทรศัพท์' });
-  }
+  const { action, phone, excludeUid } = req.body;
 
   try {
-    const snap = await adminDb.collection('users').where('phone', '==', phone).get();
-    const isDuplicate = snap.docs.some(d => d.id !== excludeUid);
-    return res.status(200).json({ isDuplicate });
+    // เช็คเบอร์ซ้ำ
+    if (action === 'checkPhone') {
+      if (!phone) return res.status(400).json({ error: 'ไม่พบเบอร์โทรศัพท์' });
+      const snap = await adminDb.collection('users').where('phone', '==', phone).get();
+      const isDuplicate = snap.docs.some(d => d.id !== excludeUid);
+      return res.status(200).json({ isDuplicate });
+    }
+
+    // สร้าง Member ID ที่ไม่ซ้ำ
+    if (action === 'generateMemberId') {
+      let memberId, exists = true;
+      while (exists) {
+        const rand = Math.floor(100000 + Math.random() * 900000);
+        memberId = 'GD-' + rand;
+        const snap = await adminDb.collection('users').where('memberId', '==', memberId).get();
+        exists = !snap.empty;
+      }
+      return res.status(200).json({ memberId });
+    }
+
+    return res.status(400).json({ error: 'ไม่รู้จัก action นี้' });
   } catch (err) {
-    console.error('check-phone error:', err);
+    console.error('check-phone API error:', err);
     return res.status(500).json({ error: err.message });
   }
 }

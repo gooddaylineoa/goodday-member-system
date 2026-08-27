@@ -2173,7 +2173,7 @@ document.getElementById('btn-r2-submit').onclick = async () => {
       const checkRes = await fetch('/api/check-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, excludeUid: currentUid })
+        body: JSON.stringify({ action: 'checkPhone', phone, excludeUid: currentUid })
       });
       const checkData = await checkRes.json();
 
@@ -2237,15 +2237,14 @@ document.getElementById('btn-r2-submit').onclick = async () => {
 
 // รหัสสมาชิกสุ่ม 6 หลัก ไม่ชนกับที่มีอยู่แล้ว
 async function generateUniqueMemberId() {
-  let memberId, exists = true;
-  while (exists) {
-    const rand = Math.floor(100000 + Math.random() * 900000); // 6 หลัก
-    memberId = 'GD-' + rand;
-    const q = query(collection(db, 'users'), where('memberId', '==', memberId));
-    const snap = await getDocs(q);
-    exists = !snap.empty;
-  }
-  return memberId;
+  const res = await fetch('/api/check-phone', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'generateMemberId' })
+  });
+  const data = await res.json();
+  if (!data.memberId) throw new Error('สร้างรหัสสมาชิกไม่สำเร็จ');
+  return data.memberId;
 }
 
 function fillProvinceSelect(selectEl) {
