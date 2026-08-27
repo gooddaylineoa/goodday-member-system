@@ -3,13 +3,12 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBewLVeVkpe8Bh5Gm0RuOVAp27aHFkPgQ8",
-  authDomain: "goodday-members.firebaseapp.com",
-  projectId: "goodday-members",
-  storageBucket: "goodday-members.firebasestorage.app",
-  messagingSenderId: "30572263082",
-  appId: "1:30572263082:web:4a77979e77c3b4f49c82d3",
-  measurementId: "G-HDR86BDFL3"
+  apiKey: "AIzaSyDVThOUC6Fnesy7f16WTzQ6F8EujH9A4R8",
+  authDomain: "goodday-lineoa.firebaseapp.com",
+  projectId: "goodday-lineoa",
+  storageBucket: "goodday-lineoa.firebasestorage.app",
+  messagingSenderId: "116298554834",
+  appId: "1:116298554834:web:4d4521116035bc59477c0b"
 };
 
 const app = initializeApp(firebaseConfig);

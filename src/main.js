@@ -3,10 +3,12 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  signOut,
+  linkWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
-
+import { doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, limit, serverTimestamp, where } from 'firebase/firestore';
+import { initLineAuth } from './lineAuth.js';
 
 // ⚠️ แทนที่ด้วยค่าจริงของพี่จาก Cloudinary Dashboard
 const CLOUDINARY_CLOUD_NAME = 'l1htg1ks';
@@ -70,50 +72,31 @@ function showView(id) {
 }
 window.showView = showView;
 
-document.getElementById('go-register').onclick = () => showView('register-view');
-document.getElementById('go-login').onclick = () => showView('login-view');
+document.getElementById('btn-login-line').onclick = () => {
+  initLineAuth();
+};
 
-// --- สมัครสมาชิก ---
-document.getElementById('btn-register').onclick = async () => {
-  const name = document.getElementById('reg-name').value.trim();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const pass = document.getElementById('reg-pass').value;
+document.getElementById('btn-login').onclick = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errBox = document.getElementById('login-error');
 
-  if (!name || !phone || !email || !pass) {
-    showToast('กรุณากรอกข้อมูลให้ครบ', 'error');
+  if (!email || !pass) {
+    errBox.innerText = 'กรุณากรอกอีเมลและรหัสผ่านให้ครบ';
+    errBox.classList.remove('hidden');
     return;
   }
 
   try {
-    const result = await createUserWithEmailAndPassword(auth, email, pass);
-    const uid = result.user.uid;
-    const memberId = 'GD-' + uid.slice(0, 5).toUpperCase();
-
-    await setDoc(doc(db, 'users', uid), {
-      memberId, name, phone, email,
-      wasteMoney: false,
-      wellProject: 'no',
-      gender: 'unspecified',
-      libraryMember: false,
-      createdAt: new Date()
-    });
-
-    showToast('สมัครสมาชิกสำเร็จ ยินดีต้อนรับ!', 'success');
-  } catch (err) {
-    showToast('สมัครไม่สำเร็จ: ' + err.message, 'error');
-  }
-};
-
-// --- เข้าสู่ระบบ ---
-document.getElementById('btn-login').onclick = async () => {
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
-
-  try {
     await signInWithEmailAndPassword(auth, email, pass);
+    errBox.classList.add('hidden');
   } catch (err) {
-    showToast('เข้าสู่ระบบไม่สำเร็จ: ' + err.message, 'error');
+    let msg = 'เข้าสู่ระบบไม่สำเร็จ';
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      msg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+    }
+    errBox.innerText = msg;
+    errBox.classList.remove('hidden');
   }
 };
 
@@ -125,22 +108,16 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUid = user.uid;
     await loadProfile(currentUid);
-    showView('profile-view');
+    const complete = await checkProfileComplete(currentUid);
+    if (complete) showView('profile-view');
   } else {
     currentUid = null;
-    showView('login-view');
+    showView('login-view');   // ✅ แค่โชว์หน้า login เฉยๆ ไม่บังคับ LINE
   }
 });
 
 // รายชื่อจังหวัด (ใส่ไม่ครบ 77 จังหวัด แค่ตัวอย่าง พี่เติมที่เหลือเองได้)
 const provinces = ["กรุงเทพมหานคร","นครปฐม","นนทบุรี","ปทุมธานี","สมุทรปราการ","ชลบุรี","เชียงใหม่","ขอนแก่น"];
-const provSelect = document.getElementById('addr-prov');
-provinces.forEach(p => {
-  const opt = document.createElement('option');
-  opt.value = p;
-  opt.innerText = p;
-  provSelect.appendChild(opt);
-});
 
 let currentUid = null; // เก็บ uid ของคนที่ login ไว้ใช้ตอนบันทึกที่อยู่
 
@@ -187,36 +164,33 @@ document.getElementById('btn-save-address').onclick = async () => {
 // แยกฟังก์ชันโหลดโปรไฟล์ออกมา เพื่อเรียกซ้ำได้ (ตอน login และตอนบันทึกที่อยู่เสร็จ)
 async function loadProfile(uid) {
   const snap = await getDoc(doc(db, 'users', uid));
-  if (snap.exists()) {
-    const data = snap.data();
-    document.getElementById('prof-memberid').innerText = data.memberId;
-    document.getElementById('prof-name').innerText = data.name;
+  if (!snap.exists()) return;   // 🆕 กันเอกสารยังไม่มีเลย (เพิ่งสร้างบัญชีเสร็จหมาดๆ)
+  const data = snap.data();
+  document.getElementById('prof-memberid').innerText = data.memberId || '-';
+  document.getElementById('prof-name').innerText = data.name || 'สมาชิกใหม่';
 
-    const headerName = document.getElementById('header-name');
-    if (headerName) headerName.innerText = data.name;
+  const headerName = document.getElementById('header-name');
+  if (headerName) headerName.innerText = data.name || 'ผู้ใช้งาน';   // 🆕 เพิ่ม fallback
 
-    const profPic = document.getElementById('prof-pic');
-    if (profPic && data.profileImage) {
-      profPic.src = data.profileImage;
-    }
-
-    const addrBox = document.getElementById('prof-address');
-    if (addrBox) {
-      if (data.address) {
-        const a = data.address;
-        addrBox.innerText = `${a.subdist} ${a.dist} ${a.prov} ${a.zip}`;
-      } else {
-        addrBox.innerText = 'ยังไม่ได้กรอกที่อยู่';
-      }
-    }
-
-    renderWasteBox(data);
-
-    // ปุ่มเหลือง Well Well Well! บนหน้าโปรไฟล์ จะโชว์ก็ต่อเมื่อเข้าร่วมโครงการสำเร็จแล้วเท่านั้น
-    // (กรอกเป้าหมาย + ข้อมูลร่างกาย + ยืนยันอีเมล Check-in ครบตามขั้นตอนก่อน)
-    const wwwMenu = document.getElementById('www-menu-item');
-    if (wwwMenu) wwwMenu.classList.toggle('hidden', data.wellProject !== true);
+  const profPic = document.getElementById('prof-pic');
+  if (profPic && data.profileImage) {
+    profPic.src = data.profileImage;
   }
+
+  const addrBox = document.getElementById('prof-address');
+  if (addrBox) {
+    if (data.address) {
+      const a = data.address;
+      addrBox.innerText = `${a.subdist} ${a.dist} ${a.prov} ${a.zip}`;
+    } else {
+      addrBox.innerText = 'ยังไม่ได้กรอกที่อยู่';
+    }
+  }
+
+  renderWasteBox(data);
+
+  const wwwMenu = document.getElementById('www-menu-item');
+  if (wwwMenu) wwwMenu.classList.toggle('hidden', data.wellProject !== true);
 }
 
 // --- แสดงกล่อง Waste box ในหน้าโปรไฟล์ ตามสถานะ ---
@@ -736,6 +710,20 @@ async function openWWWEntry() {
   }
 }
 window.openWWWEntry = openWWWEntry;
+
+async function openLibraryEntry() {
+  const snap = await getDoc(doc(db, 'users', currentUid));
+  const data = snap.data();
+  if (data.libraryMember && data.libraryMember.joined) {
+    document.getElementById('lib-card-id').innerText = data.libraryMember.cardId || '-';
+    document.getElementById('lib-card-prov').innerText = data.libraryMember.province || '-';
+    document.getElementById('lib-card-branch').innerText = data.libraryMember.branchName || '-';
+    showView('library-card-view');
+  } else {
+    showView('library-join-view');
+  }
+}
+window.openLibraryEntry = openLibraryEntry;
 
 document.getElementById('btn-cancel-wizard').onclick = () => showView('profile-view');
 
@@ -1979,3 +1967,283 @@ document.getElementById('btn-recap-submit').onclick = async () => {
 document.getElementById('btn-recap-comingsoon-close').onclick = () => showView('www-hub-view');
 document.getElementById('btn-recap-close').onclick = () => showView('www-hub-view');
 document.getElementById('btn-recap-finish').onclick = () => showView('www-hub-view');
+
+// รายชื่อสาขา ผูกกับจังหวัด (ถ้าสาขาไม่เยอะ เก็บเป็น static config พอ ไม่ต้องทำ Firestore collection)
+const libraryBranches = {
+  "ชลบุรี": [
+    { id: "cb-01", name: "ห้องสมุดประชาชนจังหวัดชลบุรี" },
+    { id: "cb-02", name: "ห้องสมุดประชาชนอำเภอศรีราชา" }
+  ],
+  "สงขลา": [ /* ... */ ]
+};
+
+document.getElementById('lib-prov-select').onchange = (e) => {
+  const branches = libraryBranches[e.target.value] || [];
+  document.getElementById('lib-branch-select').innerHTML =
+    '<option value="">-- เลือกสาขา --</option>' +
+    branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+};
+
+document.getElementById('btn-join-library').onclick = async () => {
+  const prov = document.getElementById('lib-prov-select').value;
+  const branchId = document.getElementById('lib-branch-select').value;
+  if (!prov || !branchId) { showToast('กรุณาเลือกจังหวัดและสาขา', 'error'); return; }
+
+  const branchObj = (libraryBranches[prov] || []).find(b => b.id === branchId);
+  if (!branchObj) { showToast('ไม่พบข้อมูลสาขาที่เลือก', 'error'); return; }
+
+  const cardId = 'LIB-' + Math.floor(10000 + Math.random() * 90000);
+
+  await updateDoc(doc(db, 'users', currentUid), {
+    libraryMember: { joined: true, province: prov, branchId, branchName: branchObj.name, cardId, joinedAt: serverTimestamp() }
+  });
+  await loadProfile(currentUid);
+  showView('library-card-view');
+};
+
+document.getElementById('btn-cancel-library').onclick = () => showView('profile-view');
+document.getElementById('btn-back-library-card').onclick = () => showView('profile-view');
+
+// ============ ระบบกรอกข้อมูลส่วนตัวหลัง LINE Login ครั้งแรก ============
+
+function showLoading(msg = 'กำลังประมวลผล...') {
+  const el = document.getElementById('loading-overlay');
+  el.querySelector('p').innerText = msg;
+  el.classList.remove('hidden');
+  el.classList.add('flex');
+}
+function hideLoading() {
+  const el = document.getElementById('loading-overlay');
+  el.classList.add('hidden');
+  el.classList.remove('flex');
+}
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+
+// เช็คว่ากรอกข้อมูลครบหรือยัง เรียกจาก onAuthStateChanged
+async function checkProfileComplete(uid) {
+  const snap = await getDoc(doc(db, 'users', uid));
+  const data = snap.exists() ? snap.data() : null;
+  if (!data || !data.profileComplete) {
+    renderRegisterProvinceOptions();
+    showView('register-step1-view');
+    return false;
+  }
+  return true;
+}
+window.checkProfileComplete = checkProfileComplete;
+
+function renderRegisterProvinceOptions() {
+  const sel = document.getElementById('r2-prov');
+  if (sel.options.length > 1) return; // เติมแล้วไม่ต้องเติมซ้ำ
+  fillProvinceSelect(sel);
+}
+
+// คำนวณอายุจากวันเกิดอัตโนมัติ
+document.getElementById('r1-birthdate').oninput = (e) => {
+  const bd = new Date(e.target.value);
+  if (isNaN(bd)) return;
+  const today = new Date();
+  let age = today.getFullYear() - bd.getFullYear();
+  const m = today.getMonth() - bd.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
+  document.getElementById('r1-age').value = age;
+};
+
+// สลับโหมด ไม่ทราบวันเกิด
+document.getElementById('r1-no-birthdate').onchange = (e) => {
+  const unknown = e.target.checked;
+  document.getElementById('r1-birthdate').closest('div').querySelector('input[type="date"]').disabled = unknown;
+  document.getElementById('r1-birthdate').value = '';
+  document.getElementById('r1-year-box').classList.toggle('hidden', !unknown);
+  document.getElementById('r1-age-box').classList.toggle('hidden', !unknown);
+  if (unknown) document.getElementById('r1-age').readOnly = false;
+  else document.getElementById('r1-age').readOnly = true;
+};
+
+document.getElementById('r2-no-email').onchange = (e) => {
+  const noEmail = e.target.checked;
+  document.getElementById('r2-email').disabled = noEmail;
+  document.getElementById('r2-email').value = '';
+  document.getElementById('r2-password').disabled = noEmail;
+  document.getElementById('r2-password2').disabled = noEmail;
+  if (noEmail) {
+    document.getElementById('r2-password').value = '';
+    document.getElementById('r2-password2').value = '';
+  }
+};
+
+document.getElementById('btn-r1-next').onclick = () => {
+  const fullname = document.getElementById('r1-fullname').value.trim();
+  const phone = document.getElementById('r1-phone').value.trim();
+  const noBirthdate = document.getElementById('r1-no-birthdate').checked;
+  const birthdate = document.getElementById('r1-birthdate').value;
+  const birthyear = document.getElementById('r1-birthyear').value;
+  const errBox = document.getElementById('r1-error');
+
+  if (!fullname || !phone) {
+    errBox.innerText = 'กรุณากรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ให้ครบ';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  if (!/^[0-9]{9,10}$/.test(phone.replace(/-/g, ''))) {
+    errBox.innerText = 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  if (!noBirthdate && !birthdate) {
+    errBox.innerText = 'กรุณาเลือกวันเกิด หรือติ๊ก "ไม่ทราบวันเกิด"';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  if (noBirthdate && !birthyear) {
+    errBox.innerText = 'กรุณาระบุปีเกิด';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  errBox.classList.add('hidden');
+
+  registerState.title = document.getElementById('r1-title').value.trim();
+  registerState.fullname = fullname;
+  registerState.phone = phone;
+  registerState.lineIdInput = document.getElementById('r1-lineid').value.trim();
+  registerState.birthdate = noBirthdate ? `01/01/${birthyear}` : birthdate;
+  registerState.age = document.getElementById('r1-age').value || null;
+  registerState.birthdateUnknown = noBirthdate;
+
+  showView('register-step2-view');
+};
+
+document.getElementById('btn-r2-back').onclick = () => showView('register-step1-view');
+
+document.getElementById('btn-pdpa-link').onclick = () => {
+  // TODO: เปลี่ยนเป็นลิงก์นโยบาย PDPA จริงของโครงการ
+  window.open('https://example.com/pdpa', '_blank');
+};
+
+let registerState = {};
+
+document.getElementById('btn-r2-submit').onclick = async () => {
+  const subdist = document.getElementById('r2-subdist').value.trim();
+  const dist = document.getElementById('r2-dist').value.trim();
+  const prov = document.getElementById('r2-prov').value;
+  const zip = document.getElementById('r2-zip').value.trim();
+  const pdpaChecked = document.getElementById('r2-pdpa').checked;
+  const noEmail = document.getElementById('r2-no-email').checked;
+  const email = document.getElementById('r2-email').value.trim();
+  const password = document.getElementById('r2-password').value;
+  const password2 = document.getElementById('r2-password2').value;
+  const errBox = document.getElementById('r2-error');
+
+  if (!subdist || !dist || !prov || !zip) {
+    errBox.innerText = 'กรุณากรอกที่อยู่ให้ครบ';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  if (!noEmail) {
+    if (!email || !email.includes('@')) {
+      errBox.innerText = 'กรุณากรอกอีเมลให้ถูกต้อง หรือติ๊กไม่ระบุอีเมล';
+      errBox.classList.remove('hidden');
+      return;
+    }
+    if (!password || password.length < 8) {
+      errBox.innerText = 'กรุณาตั้งรหัสผ่านอย่างน้อย 8 ตัวอักษร';
+      errBox.classList.remove('hidden');
+      return;
+    }
+    if (password !== password2) {
+      errBox.innerText = 'รหัสผ่านทั้งสองช่องไม่ตรงกัน';
+      errBox.classList.remove('hidden');
+      return;
+    }
+  }
+  if (!pdpaChecked) {
+    errBox.innerText = 'กรุณายอมรับนโยบาย PDPA ก่อนสมัครสมาชิก';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  errBox.classList.add('hidden');
+
+  showLoading('กำลังสร้างบัญชีสมาชิก...');
+
+  try {
+    // ผูกอีเมล/รหัสผ่านเข้ากับบัญชี LINE เดิม (เฉพาะถ้าเลือกใส่อีเมล)
+    if (!noEmail) {
+      const credential = EmailAuthProvider.credential(email, password);
+      await linkWithCredential(auth.currentUser, credential);
+    }
+
+    const memberId = await generateUniqueMemberId();
+
+    await updateDoc(doc(db, 'users', currentUid), {
+      title: registerState.title || '',
+      name: registerState.fullname,
+      phone: registerState.phone,
+      lineIdInput: registerState.lineIdInput || '',
+      birthdate: registerState.birthdate,
+      birthdateUnknown: registerState.birthdateUnknown,
+      age: registerState.age,
+      email: noEmail ? '' : email,
+      hasPasswordLogin: !noEmail,
+      address: { subdist, dist, prov, zip },
+      pdpaAccepted: true,
+      pdpaAcceptedAt: serverTimestamp(),
+      memberId,
+      profileComplete: true,
+      createdAt: serverTimestamp()
+    });
+
+    await loadProfile(currentUid);
+    hideLoading();
+    showView('profile-view');
+    showToast('สมัครสมาชิกสำเร็จ ยินดีต้อนรับ!', 'success');
+  } catch (err) {
+    hideLoading();
+    let msg = err.message;
+    if (err.code === 'auth/email-already-in-use') {
+      msg = 'อีเมลนี้ถูกใช้ผูกกับบัญชีอื่นแล้ว กรุณาใช้อีเมลอื่น';
+    } else if (err.code === 'auth/weak-password') {
+      msg = 'รหัสผ่านไม่ปลอดภัยพอ กรุณาตั้งรหัสผ่านที่ซับซ้อนกว่านี้';
+    }
+    showToast('เกิดข้อผิดพลาด: ' + msg, 'error');
+  }
+};
+
+// รหัสสมาชิกสุ่ม 6 หลัก ไม่ชนกับที่มีอยู่แล้ว
+async function generateUniqueMemberId() {
+  let memberId, exists = true;
+  while (exists) {
+    const rand = Math.floor(100000 + Math.random() * 900000); // 6 หลัก
+    memberId = 'GD-' + rand;
+    const q = query(collection(db, 'users'), where('memberId', '==', memberId));
+    const snap = await getDocs(q);
+    exists = !snap.empty;
+  }
+  return memberId;
+}
+
+function fillProvinceSelect(selectEl) {
+  if (!selectEl) return;
+  provinces.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.innerText = p;
+    selectEl.appendChild(opt);
+  });
+}
+
+// แทนที่โค้ดเดิมที่เติมแค่ addr-prov
+fillProvinceSelect(document.getElementById('addr-prov'));
+fillProvinceSelect(document.getElementById('wj-prov'));
+
+function fillLibraryProvinceSelect() {
+  const sel = document.getElementById('lib-prov-select');
+  if (!sel) return;
+  Object.keys(libraryBranches).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.innerText = p;
+    sel.appendChild(opt);
+  });
+}
+fillLibraryProvinceSelect();

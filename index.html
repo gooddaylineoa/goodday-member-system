@@ -7,6 +7,7 @@
   <title>Goodday Member</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -160,12 +161,23 @@
     <!-- หน้า Login -->
     <div id="login-view" class="page-section active p-4 pt-10">
       <div class="text-center mb-8">
-        <div
-          class="w-16 h-16 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
-          <i class="fa-solid fa-user-lock"></i></div>
+        <div class="w-16 h-16 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+          <i class="fa-solid fa-user-lock"></i>
+        </div>
         <h2 class="text-xl font-bold theme-text">เข้าสู่ระบบสมาชิก</h2>
-        <p class="text-gray-500 mt-1 text-sm">กรุณาเข้าสู่ระบบเพื่อใช้งาน</p>
+        <p class="text-gray-500 mt-1 text-sm">เลือกวิธีเข้าสู่ระบบ</p>
       </div>
+
+      <button id="btn-login-line" class="w-full bg-[#06C755] text-white py-3.5 rounded-xl font-semibold shadow-md flex items-center justify-center gap-2 text-sm mb-4">
+        <i class="fa-brands fa-line text-xl"></i> เข้าสู่ระบบด้วย LINE
+      </button>
+
+      <div class="flex items-center gap-3 my-4">
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <span class="text-xs text-gray-400 font-bold">หรือ</span>
+        <div class="flex-1 h-px bg-gray-200"></div>
+      </div>
+
       <div class="space-y-4">
         <div>
           <label class="text-xs font-bold text-gray-500 mb-1 block">อีเมล</label>
@@ -176,44 +188,87 @@
           <input id="login-pass" type="password" class="form-input" placeholder="กรอกรหัสผ่าน...">
         </div>
         <div id="login-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden"></div>
-        <button id="btn-login"
-          class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md hover:bg-pink-700 transition mt-2 text-sm">เข้าสู่ระบบ</button>
-        <div class="text-center mt-6">
-          <p class="text-gray-500 font-medium text-xs">ยังไม่เป็นสมาชิก?</p>
-          <button id="go-register"
-            class="mt-3 w-full bg-white border border-pink-500 theme-text py-3 rounded-xl font-semibold text-sm hover:bg-pink-50 transition">สมัครสมาชิกใหม่</button>
-        </div>
+        <button id="btn-login" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md hover:bg-pink-700 transition text-sm">เข้าสู่ระบบด้วยอีเมล</button>
+        <p class="text-center text-xs text-gray-400 mt-2">*ใช้ได้เฉพาะบัญชีที่เคยตั้งรหัสผ่านไว้ตอนสมัครสมาชิกผ่าน LINE เท่านั้น</p>
       </div>
     </div>
 
-    <!-- หน้า Register -->
-    <div id="register-view" class="page-section p-4 pt-6">
-      <div class="flex items-center mb-6">
-        <button id="go-login" class="w-8 h-8 bg-gray-100 rounded-full text-gray-600 mr-3"><i
-            class="fa-solid fa-arrow-left"></i></button>
-        <h2 class="text-lg font-bold theme-text">สร้างบัญชี</h2>
+    <!-- หน้ากรอกข้อมูลส่วนตัว ส่วนที่ 1 -->
+    <div id="register-step1-view" class="page-section p-4 pt-6">
+      <h2 class="text-lg font-bold theme-text mb-1">สร้างบัญชี (1/2)</h2>
+      <p class="text-xs text-gray-400 mb-5">กรอกข้อมูลส่วนตัวของท่าน</p>
+
+      <input id="r1-title" type="text" class="form-input" placeholder="คำนำหน้า">
+      <input id="r1-fullname" type="text" class="form-input" placeholder="ชื่อ-นามสกุล *">
+
+        <div>
+          <label class="text-xs font-bold text-gray-500 mb-1 block">วัน/เดือน/ปีเกิด *</label>
+          <input id="r1-birthdate" type="date" class="form-input">
+          <label class="flex items-center mt-2 cursor-pointer">
+            <input type="checkbox" id="r1-no-birthdate" class="w-4 h-4">
+            <span class="ml-2 text-xs text-gray-600">ไม่ทราบวันเกิด (ระบุเฉพาะปีเกิด)</span>
+          </label>
+        </div>
+
+        <div id="r1-year-box" class="hidden">
+          <input id="r1-birthyear" type="number" class="form-input" placeholder="ปีเกิด (พ.ศ.) *">
+        </div>
+        <div id="r1-age-box" class="hidden">
+          <input id="r1-age" type="number" class="form-input bg-gray-50" placeholder="อายุ (ปี)" readonly>
+          <p class="text-[10px] text-gray-400 mt-1">ระบบคำนวณจากวันเกิดอัตโนมัติ</p>
+        </div>
+
+        <input id="r1-phone" type="tel" class="form-input" placeholder="เบอร์โทรศัพท์ *">
+        <input id="r1-lineid" type="text" class="form-input" placeholder="LINE ID (ไม่บังคับ)">
+
+      <div id="r1-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-4"></div>
+      <button id="btn-r1-next" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-4 text-sm">ถัดไป</button>
+    </div>
+
+    <!-- หน้ากรอกข้อมูลส่วนตัว ส่วนที่ 2 -->
+    <div id="register-step2-view" class="page-section p-4 pt-6">
+      <div class="flex items-center mb-5">
+        <button id="btn-r2-back" class="w-8 h-8 bg-gray-100 rounded-full text-gray-600 mr-3"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold theme-text">สร้างบัญชี (2/2)</h2>
       </div>
+
       <div class="space-y-4">
         <div>
-          <label class="text-xs font-bold text-gray-500 mb-1 block">ชื่อ-นามสกุล *</label>
-          <input id="reg-name" type="text" class="form-input" placeholder="ชื่อ นามสกุล">
+          <input id="r2-email" type="email" class="form-input" placeholder="อีเมล (ไม่บังคับ)">
+          <label class="flex items-center mt-2 cursor-pointer">
+            <input type="checkbox" id="r2-no-email" class="w-4 h-4">
+            <span class="ml-2 text-xs text-gray-600">ไม่ระบุอีเมล</span>
+          </label>
         </div>
+
         <div>
-          <label class="text-xs font-bold text-gray-500 mb-1 block">เบอร์โทรศัพท์ *</label>
-          <input id="reg-phone" type="tel" class="form-input" placeholder="08xxxxxxxx">
+          <label class="text-xs font-bold text-gray-500 mb-1 block">ตั้งรหัสผ่าน (สำหรับเข้าเว็บด้วยอีเมล) *</label>
+          <input id="r2-password" type="password" class="form-input" placeholder="อย่างน้อย 8 ตัวอักษร">
         </div>
-        <div>
-          <label class="text-xs font-bold text-gray-500 mb-1 block">อีเมล (ใช้เข้าระบบ) *</label>
-          <input id="reg-email" type="email" class="form-input" placeholder="example@email.com">
+        <input id="r2-password2" type="password" class="form-input" placeholder="ยืนยันรหัสผ่านอีกครั้ง">
+
+        <p class="text-xs font-bold text-gray-500 -mb-2">ที่อยู่ปัจจุบัน</p>
+        <div class="grid grid-cols-2 gap-2">
+          <input id="r2-subdist" type="text" class="form-input" placeholder="ตำบล/แขวง *">
+          <input id="r2-dist" type="text" class="form-input" placeholder="อำเภอ/เขต *">
         </div>
-        <div>
-          <label class="text-xs font-bold text-gray-500 mb-1 block">รหัสผ่าน *</label>
-          <input id="reg-pass" type="password" class="form-input" placeholder="อย่างน้อย 6 ตัวอักษร">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="r2-prov" class="form-input bg-gray-50 font-bold">
+            <option value="">-- จังหวัด * --</option>
+          </select>
+          <input id="r2-zip" type="text" class="form-input" placeholder="รหัสไปรษณีย์ *">
         </div>
-        <div id="reg-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden"></div>
-        <button id="btn-register"
-          class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-2 transition text-sm">ยืนยันสมัครสมาชิก</button>
+
+        <label class="flex items-start gap-2 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-3">
+          <input type="checkbox" id="r2-pdpa" class="w-5 h-5 mt-0.5">
+          <span class="text-xs text-gray-700">ข้าพเจ้าได้ศึกษาและยอมรับ
+            <span id="btn-pdpa-link" class="theme-text font-bold underline">นโยบายการเก็บข้อมูลส่วนบุคคล (PDPA)</span>
+            แล้ว *</span>
+        </label>
       </div>
+
+      <div id="r2-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-4"></div>
+      <button id="btn-r2-submit" class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-4 text-sm">ยืนยันสมัครสมาชิก</button>
     </div>
 
     <!-- หน้า Profile -->
@@ -300,7 +355,7 @@
       </div>
 
       <!-- เมนูที่ 5: สมาชิกห้องสมุด -->
-      <div onclick="notReady()"
+      <div onclick="openLibraryEntry()"
         class="bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl p-4 mb-8 text-white flex items-center justify-between shadow-md mx-4 cursor-pointer active:scale-95 transition">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl shrink-0"><i
@@ -338,6 +393,52 @@
         <div id="addr-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden"></div>
         <button id="btn-save-address"
           class="w-full theme-pink text-white py-3.5 rounded-xl font-semibold shadow-md mt-4 text-sm">บันทึกข้อมูล</button>
+      </div>
+    </div>
+
+    <!-- หน้าเลือกจังหวัด/สาขา ห้องสมุด -->
+    <div id="library-join-view" class="page-section p-4 pt-6 bg-white min-h-screen">
+      <div class="flex items-center mb-6">
+        <button id="btn-cancel-library" class="w-8 h-8 bg-gray-100 rounded-full text-gray-600 mr-3"><i
+            class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold theme-text">สมัครสมาชิกห้องสมุด</h2>
+      </div>
+      <p class="text-xs text-gray-400 mb-4">เลือกจังหวัดและสาขาที่ต้องการสมัครสมาชิก</p>
+      <div class="space-y-3">
+        <select id="lib-prov-select" class="form-input bg-gray-50 font-bold">
+          <option value="">-- เลือกจังหวัด * --</option>
+        </select>
+        <select id="lib-branch-select" class="form-input bg-gray-50 font-bold" disabled>
+          <option value="">-- เลือกสาขา * --</option>
+        </select>
+      </div>
+      <div id="lib-error" class="bg-red-50 text-red-600 text-xs p-3 rounded-lg text-center font-bold hidden mt-3"></div>
+      <button id="btn-join-library"
+        class="w-full theme-pink text-white py-3.5 rounded-xl font-bold shadow-md mt-4">ยืนยันสมัครสมาชิก</button>
+    </div>
+
+    <!-- หน้าแสดงบัตรสมาชิกห้องสมุด -->
+    <div id="library-card-view" class="page-section p-4 pt-6 bg-gray-50 min-h-screen">
+      <div class="flex items-center mb-6">
+        <button id="btn-back-library-card" class="w-8 h-8 bg-white rounded-full text-gray-600 mr-3 shadow-sm border"><i
+            class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-lg font-bold theme-text">บัตรสมาชิกห้องสมุด</h2>
+      </div>
+      <div class="bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+        <div class="absolute -right-2 top-2 opacity-20 text-8xl">
+          <i class="fa-solid fa-book-open-reader"></i>
+        </div>
+        <span class="inline-block bg-white/20 text-white text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full backdrop-blur-sm mb-6 border border-white/30">
+          Library Member
+        </span>
+        <p class="text-purple-100 text-sm mb-1">รหัสสมาชิกห้องสมุด</p>
+        <h2 id="lib-card-id" class="text-3xl font-bold tracking-wider mb-4 drop-shadow-sm">LIB-XXXXX</h2>
+        <div class="border-t border-white/20 pt-3">
+          <p class="text-purple-100 text-xs">จังหวัด</p>
+          <p id="lib-card-prov" class="font-bold mb-2">-</p>
+          <p class="text-purple-100 text-xs">สาขา</p>
+          <p id="lib-card-branch" class="font-bold">-</p>
+        </div>
       </div>
     </div>
 
@@ -1284,6 +1385,12 @@
         <p id="app-modal-message" class="text-sm text-gray-500 mb-6"></p>
         <button id="app-modal-ok" class="w-full theme-pink text-white py-3 rounded-xl font-bold">OK</button>
       </div>
+    </div>
+
+    <!-- Loading overlay ใช้ทั่วแอป -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/50 z-[10000] hidden flex-col items-center justify-center">
+      <div class="w-14 h-14 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+      <p class="text-white font-bold text-sm mt-4">กำลังประมวลผล...</p>
     </div>
 
     <div id="crop-modal" class="fixed inset-0 bg-black/80 z-[9999] hidden flex-col items-center justify-center p-4">
