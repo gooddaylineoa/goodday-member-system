@@ -2106,8 +2106,8 @@ document.getElementById('btn-r1-next').onclick = () => {
 
   registerState.title = document.getElementById('r1-title').value.trim();
   registerState.fullname = fullname;
-  registerState.lineIdInput = document.getElementById('r1-lineid').value.trim();
   registerState.email = document.getElementById('r1-email').value.trim();
+  registerState.lineIdInput = document.getElementById('r1-lineid').value.trim();
   registerState.birthdate = noBirthdate ? `01/01/${birthyear}` : birthdate;
   registerState.age = document.getElementById('r1-age').value || null;
   registerState.birthdateUnknown = noBirthdate;
@@ -2119,7 +2119,7 @@ document.getElementById('btn-r2-back').onclick = () => showView('register-step1-
 
 document.getElementById('btn-pdpa-link').onclick = () => {
   // TODO: เปลี่ยนเป็นลิงก์นโยบาย PDPA จริงของโครงการ
-  window.open('https://example.com/pdpa', '_blank');
+  window.open('https://www.ratchakitcha.soc.go.th/DATA/PDF/2562/A/069/T_0052.PDF', '_blank');
 };
 
 let registerState = {};
@@ -2169,7 +2169,6 @@ document.getElementById('btn-r2-submit').onclick = async () => {
 
   showLoading('กำลังตรวจสอบข้อมูล...');
 
-  // 🆕 เช็คเบอร์ซ้ำตรงนี้แทน (ย้ายมาจากหน้า 1/2)
   const dupQ = query(collection(db, 'users'), where('phone', '==', phone));
   const dupSnap = await getDocs(dupQ);
   const isDuplicate = dupSnap.docs.some(d => d.id !== currentUid);
@@ -2198,6 +2197,7 @@ document.getElementById('btn-r2-submit').onclick = async () => {
       title: registerState.title || '',
       name: registerState.fullname,
       phone: phone,
+      email: registerState.email || '',
       lineIdInput: registerState.lineIdInput || '',
       birthdate: registerState.birthdate,
       birthdateUnknown: registerState.birthdateUnknown,
