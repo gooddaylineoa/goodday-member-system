@@ -1986,9 +1986,11 @@ const libraryBranches = {
 
 document.getElementById('lib-prov-select').onchange = (e) => {
   const branches = libraryBranches[e.target.value] || [];
-  document.getElementById('lib-branch-select').innerHTML =
-    '<option value="">-- เลือกสาขา --</option>' +
+  const branchSelect = document.getElementById('lib-branch-select');
+  branchSelect.innerHTML =
+    '-- เลือกสาขา --' +
     branches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+  branchSelect.disabled = branches.length === 0;   // 🆕 เพิ่มบรรทัดนี้
 };
 
 document.getElementById('btn-join-library').onclick = async () => {
