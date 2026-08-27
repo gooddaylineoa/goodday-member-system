@@ -2203,7 +2203,7 @@ document.getElementById('btn-r2-submit').onclick = async () => {
 
     const memberId = await generateUniqueMemberId();
 
-    await updateDoc(doc(db, 'users', currentUid), {
+    await setDoc(doc(db, 'users', currentUid), {
       title: registerState.title || '',
       name: registerState.fullname,
       phone: phone,
@@ -2219,7 +2219,7 @@ document.getElementById('btn-r2-submit').onclick = async () => {
       memberId,
       profileComplete: true,
       createdAt: serverTimestamp()
-    });
+    }, { merge: true });
 
     await loadProfile(currentUid);
     hideLoading();
