@@ -2167,20 +2167,30 @@ document.getElementById('btn-r2-submit').onclick = async () => {
   }
   errBox.classList.add('hidden');
 
-  showLoading('กำลังตรวจสอบข้อมูล...');
+    showLoading('กำลังตรวจสอบข้อมูล...');
 
-  const dupQ = query(collection(db, 'users'), where('phone', '==', phone));
-  const dupSnap = await getDocs(dupQ);
-  const isDuplicate = dupSnap.docs.some(d => d.id !== currentUid);
+    try {
+      const checkRes = await fetch('/api/check-phone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, excludeUid: currentUid })
+      });
+      const checkData = await checkRes.json();
 
-  if (isDuplicate) {
-    hideLoading();
-    errBox.innerText = 'เบอร์โทรศัพท์นี้มีการสมัครสมาชิกไปแล้ว กรุณาใช้เบอร์อื่น';
-    errBox.classList.remove('hidden');
-    return;
-  }
+      if (checkData.isDuplicate) {
+        hideLoading();
+        errBox.innerText = 'เบอร์โทรศัพท์นี้มีการสมัครสมาชิกไปแล้ว กรุณาใช้เบอร์อื่น';
+        errBox.classList.remove('hidden');
+        return;
+      }
+    } catch (checkErr) {
+      hideLoading();
+      errBox.innerText = 'ตรวจสอบข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+      errBox.classList.remove('hidden');
+      return;
+    }
 
-  showLoading('กำลังสร้างบัญชีสมาชิก...');
+    showLoading('กำลังสร้างบัญชีสมาชิก...');
 
   try {
     const syntheticEmail = phoneToSyntheticEmail(phone);
