@@ -152,15 +152,18 @@ document.getElementById('btn-save-address').onclick = async () => {
     return;
   }
 
+  showLoading('กำลังบันทึกที่อยู่...');
   try {
     await updateDoc(doc(db, 'users', currentUid), {
       address: { subdist, dist, prov, zip }
     });
-    await loadProfile(currentUid); // โหลดข้อมูลใหม่มาแสดง
+    await loadProfile(currentUid);
     showToast('บันทึกที่อยู่สำเร็จ', 'success');
     showView('profile-view');
   } catch (err) {
     showToast('บันทึกไม่สำเร็จ: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -234,6 +237,7 @@ document.getElementById('btn-join-waste').onclick = async () => {
     return;
   }
 
+  showLoading('กำลังเข้าร่วมโครงการ...');
   try {
     await updateDoc(doc(db, 'users', currentUid), {
       wasteMoney: true,
@@ -244,6 +248,8 @@ document.getElementById('btn-join-waste').onclick = async () => {
     showView('profile-view');
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -436,17 +442,16 @@ document.getElementById('btn-save-health').onclick = async () => {
     createdAt: serverTimestamp()
   };
 
+  showLoading('กำลังบันทึกข้อมูลสุขภาพ...');
   try {
     await addDoc(logsRef, healthData);
     await updateDoc(doc(db, 'users', currentUid), { nickname, gender });
 
-    // 🌟 จุดเชื่อมกับ WWW
     const userSnap = await getDoc(doc(db, 'users', currentUid));
     const userData = userSnap.data();
     const wantJoin = document.getElementById('hf-join-www').checked;
 
     if (userData.wellProject === true) {
-      // เข้าร่วมอยู่แล้ว -> ก๊อปข้อมูลนี้เข้า wwwLogs ด้วยอัตโนมัติ
       await addDoc(collection(db, 'users', currentUid, 'wwwLogs'), {
         date: todayStr, weight: healthData.weight, fat: healthData.fat,
         visceral: healthData.visceral, muscle: healthData.muscle,
@@ -456,7 +461,6 @@ document.getElementById('btn-save-health').onclick = async () => {
       showToast('บันทึกข้อมูลสุขภาพสำเร็จ! (อัปเดตกราฟ WWW ให้ด้วยแล้ว)', 'success');
       showView('profile-view');
     } else if (wantJoin) {
-      // ยังไม่เข้าร่วม แต่ติ๊กอยากเข้าร่วม -> เริ่มขั้นตอนตั้งเป้าหมาย Well Well Well! ใหม่
       showToast('บันทึกข้อมูลสุขภาพสำเร็จ! ต่อไปมาตั้งเป้าหมาย Well Well Well! กันครับ', 'success');
       wizardState = { goals: [], monthlyGoal: '', bodyData: {}, ambassador: '', attendOnsite: false, email: userData.email || '' };
       renderWizardGoals();
@@ -467,6 +471,8 @@ document.getElementById('btn-save-health').onclick = async () => {
     }
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -840,6 +846,7 @@ document.getElementById('btn-checkin-www').onclick = async () => {
   }
   wizardState.email = email;
 
+  showLoading('กำลัง Check-in เข้าสู่ระบบ...');
   try {
     await updateDoc(doc(db, 'users', currentUid), {
       wellProject: true,
@@ -847,7 +854,7 @@ document.getElementById('btn-checkin-www').onclick = async () => {
       monthlyGoal: wizardState.monthlyGoal,
       wwwEmail: email,
       wwwAttendOnsite: wizardState.attendOnsite,
-      wellProjectJoinedAt: serverTimestamp() // 🆕 เพิ่มตรงนี้แทน
+      wellProjectJoinedAt: serverTimestamp()
     });
 
     await addDoc(collection(db, 'users', currentUid, 'wwwLogs'), {
@@ -857,7 +864,7 @@ document.getElementById('btn-checkin-www').onclick = async () => {
       createdAt: serverTimestamp()
     });
 
-    await loadProfile(currentUid); // ปลดล็อกปุ่มเหลือง Well Well Well! บนหน้าโปรไฟล์
+    await loadProfile(currentUid);
 
     showAppModal({
       title: 'ยินดีต้อนรับ!',
@@ -868,6 +875,8 @@ document.getElementById('btn-checkin-www').onclick = async () => {
     });
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -890,7 +899,6 @@ document.getElementById('btn-save-update').onclick = async () => {
     return;
   }
 
-  // เช็คว่าวันนี้อัปเดตไปแล้วหรือยัง (จำกัดวันละ 1 ครั้ง)
   const logsRef = collection(db, 'users', currentUid, 'wwwLogs');
   const q = query(logsRef, orderBy('createdAt', 'desc'), limit(1));
   const lastSnap = await getDocs(q);
@@ -901,6 +909,7 @@ document.getElementById('btn-save-update').onclick = async () => {
     return;
   }
 
+  showLoading('กำลังบันทึกและอัปเดตสมุดสุขภาพ...');
   try {
     await addDoc(logsRef, {
       date: todayStr,
@@ -919,6 +928,8 @@ document.getElementById('btn-save-update').onclick = async () => {
     showView('www-hub-view');
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -1163,6 +1174,7 @@ document.getElementById('btn-submit-march').onclick = async () => {
     return;
   }
 
+  showLoading('กำลังบันทึกก้าวเดิน...');
   try {
     await addDoc(logsRef, {
       date: todayStr,
@@ -1174,6 +1186,8 @@ document.getElementById('btn-submit-march').onclick = async () => {
     await openMarchBoard();
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -1473,6 +1487,7 @@ document.getElementById('btn-save-sleep').onclick = async () => {
 
   const symptoms = Array.from(document.querySelectorAll('.sleep-symptom-cb:checked')).map(cb => cb.value);
 
+  showLoading('กำลังบันทึกข้อมูลการนอน...');
   try {
     await addDoc(collection(db, 'users', currentUid, 'sleepLogs'), {
       date: new Date().toLocaleDateString('th-TH'),
@@ -1484,6 +1499,8 @@ document.getElementById('btn-save-sleep').onclick = async () => {
     showView('www-hub-view');
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -1599,6 +1616,7 @@ document.getElementById('btn-mark-cooked').onclick = async () => {
     return;
   }
 
+  showLoading('กำลังบันทึก...');
   try {
     await addDoc(logsRef, {
       date: todayStr,
@@ -1609,6 +1627,8 @@ document.getElementById('btn-mark-cooked').onclick = async () => {
     showToast('บันทึกแล้ว! นับเป็นมื้ออาหารที่เปลี่ยนใน Recap เดือนนี้ 🎉', 'success');
   } catch (err) {
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -1957,8 +1977,9 @@ document.getElementById('btn-recap-submit').onclick = async () => {
     return;
   }
 
+  showLoading('กำลังส่งคำตอบ...');
   try {
-    const monthKey = new Date().toISOString().slice(0, 7); // เช่น 2026-08
+    const monthKey = new Date().toISOString().slice(0, 7);
     await setDoc(doc(db, 'users', currentUid, 'wwwRecap', monthKey), {
       evaluation: recapEvalChoice,
       experienceText: text,
@@ -1968,6 +1989,8 @@ document.getElementById('btn-recap-submit').onclick = async () => {
   } catch (err) {
     errBox.innerText = 'เกิดข้อผิดพลาด: ' + err.message;
     errBox.classList.remove('hidden');
+  } finally {
+    hideLoading();
   }
 };
 
@@ -2003,11 +2026,18 @@ document.getElementById('btn-join-library').onclick = async () => {
 
   const cardId = 'LIB-' + Math.floor(10000 + Math.random() * 90000);
 
-  await updateDoc(doc(db, 'users', currentUid), {
-    libraryMember: { joined: true, province: prov, branchId, branchName: branchObj.name, cardId, joinedAt: serverTimestamp() }
-  });
-  await loadProfile(currentUid);
-  showView('library-card-view');
+  showLoading('กำลังสมัครสมาชิกห้องสมุด...');
+  try {
+    await updateDoc(doc(db, 'users', currentUid), {
+      libraryMember: { joined: true, province: prov, branchId, branchName: branchObj.name, cardId, joinedAt: serverTimestamp() }
+    });
+    await loadProfile(currentUid);
+    showView('library-card-view');
+  } catch (err) {
+    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
 };
 
 document.getElementById('btn-cancel-library').onclick = () => showView('profile-view');
