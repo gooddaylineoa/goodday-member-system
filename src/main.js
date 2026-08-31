@@ -27,9 +27,9 @@ function showToast(message, type = 'info', duration = 3200) {
   const s = styles[type] || styles.info;
 
   const toast = document.createElement('div');
-  toast.className = `toast-pop ${s.bg} text-white rounded-2xl shadow-lg px-4 py-3.5 flex items-start gap-3 text-sm font-bold`;
+  toast.className = `toast-pop ${s.bg} text-white rounded-2xl shadow-lg px-5 py-4 flex items-start gap-3 text-lg font-bold`;
   toast.innerHTML = `
-    <i class="fa-solid ${s.icon} text-lg mt-0.5 shrink-0"></i>
+    <i class="fa-solid ${s.icon} text-2xl mt-0.5 shrink-0"></i>
     <span class="flex-1 leading-snug">${message}</span>
     <button class="toast-close opacity-70 hover:opacity-100 shrink-0"><i class="fa-solid fa-xmark"></i></button>
   `;
@@ -282,8 +282,8 @@ async function openWasteLogbook() {
   } else {
     listBox.innerHTML = logs.map(l => `
       <div class="bg-white border rounded-lg p-3 flex justify-between items-center">
-        <span class="text-sm text-gray-600">${l.date || '-'}</span>
-        <span class="font-bold text-emerald-600">+${(l.amount || 0).toFixed(2)} บาท</span>
+        <span class="text-lg text-gray-600">${l.date || '-'}</span>
+        <span class="text-lg font-black text-emerald-600">+${(l.amount || 0).toFixed(2)} บาท</span>
       </div>
     `).join('');
   }
@@ -527,15 +527,15 @@ window.openHealthHistory = openHealthHistory;
 function renderHHProfileCard(latest) {
   const genderText = latest.gender === 'male' ? 'ชาย' : latest.gender === 'female' ? 'หญิง' : '-';
   document.getElementById('hh-profile-card').innerHTML = `
-    <span class="inline-block bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">ส่วนแรก</span>
-    <h2 class="text-xl font-black mb-3">${latest.nickname || '-'}</h2>
-    <div class="grid grid-cols-3 gap-2 text-sm mb-3">
-      <div><p class="text-blue-100 text-[10px]">อายุ</p><p class="font-bold">${latest.age || '-'} ปี</p></div>
-      <div><p class="text-blue-100 text-[10px]">เพศ</p><p class="font-bold">${genderText}</p></div>
-      <div><p class="text-blue-100 text-[10px]">ส่วนสูง</p><p class="font-bold">${latest.height || '-'} ซม.</p></div>
+    <span class="inline-block bg-white/20 text-white text-sm font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3">ส่วนแรก</span>
+    <h2 class="text-2xl font-black mb-3">${latest.nickname || '-'}</h2>
+    <div class="grid grid-cols-3 gap-2 text-base mb-3">
+      <div><p class="text-blue-100 text-sm">อายุ</p><p class="font-bold">${latest.age || '-'} ปี</p></div>
+      <div><p class="text-blue-100 text-sm">เพศ</p><p class="font-bold">${genderText}</p></div>
+      <div><p class="text-blue-100 text-sm">ส่วนสูง</p><p class="font-bold">${latest.height || '-'} ซม.</p></div>
     </div>
-    <p class="text-blue-100 text-[10px]">โรคประจำตัว</p>
-    <p class="font-bold text-sm">${latest.disease && latest.disease !== '-' ? latest.disease : '-'}</p>
+    <p class="text-blue-100 text-sm">โรคประจำตัว</p>
+    <p class="font-bold text-lg">${latest.disease && latest.disease !== '-' ? latest.disease : '-'}</p>
   `;
 }
 
@@ -566,12 +566,12 @@ function renderHHTrendSection(logsAsc) {
 // ส่วนที่ 3: การ์ดข้อมูลรายวัน (เลื่อนแนวนอน)
 function renderHHCardsSection(logsDesc) {
   document.getElementById('hh-cards-scroll').innerHTML = logsDesc.map((l, i) => `
-    <div class="min-w-[220px] bg-white rounded-xl shadow-sm border border-gray-200 p-4 shrink-0">
-      <p class="text-xs font-bold text-blue-700 mb-3"><i class="fa-regular fa-calendar mr-1"></i> ข้อมูลวันที่ ${l.date}</p>
-      <div class="space-y-2 text-sm">
+    <div class="min-w-[240px] bg-white rounded-xl shadow-sm border border-gray-200 p-4 shrink-0">
+      <p class="text-base font-bold text-blue-700 mb-3"><i class="fa-regular fa-calendar mr-1"></i> ข้อมูลวันที่ ${l.date}</p>
+      <div class="space-y-2 text-lg">
         <div class="flex justify-between items-center">
           <span class="text-gray-500">น้ำหนัก</span>
-          <span class="font-bold text-gray-800">${l.weight} kg ${i === 0 ? '<span class="ml-1 bg-emerald-50 text-emerald-600 text-[9px] font-bold px-2 py-0.5 rounded-full">ชั่งน้ำหนัก</span>' : ''}</span>
+          <span class="font-bold text-gray-800">${l.weight} kg ${i === 0 ? '<span class="ml-1 bg-emerald-50 text-emerald-600 text-sm font-bold px-2 py-0.5 rounded-full">ชั่งน้ำหนัก</span>' : ''}</span>
         </div>
         <div class="flex justify-between"><span class="text-gray-500">ไขมัน (Fat)</span><span class="font-bold text-gray-800">${l.fat}%</span></div>
         <div class="flex justify-between"><span class="text-gray-500">ไขมันช่องท้อง</span><span class="font-bold text-gray-800">${l.visceral}</span></div>
@@ -674,9 +674,9 @@ function renderHHSummarySection(latest) {
 
   document.getElementById('hh-summary-list').innerHTML = items.map(it => `
     <div class="flex justify-between items-center p-3">
-      <span class="text-sm font-bold text-gray-700">${it.label}</span>
+      <span class="text-lg font-bold text-gray-700">${it.label}</span>
       <div class="flex gap-1.5 flex-wrap justify-end">
-        ${it.pills.map(p => `<span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${colorClass[p.color]}">${p.text}</span>`).join('')}
+        ${it.pills.map(p => `<span class="text-sm font-bold px-2.5 py-1 rounded-full ${colorClass[p.color]}">${p.text}</span>`).join('')}
       </div>
     </div>
   `).join('');
@@ -693,13 +693,13 @@ const wwwGoalsMaster = [
 function renderWizardGoals() {
   const container = document.getElementById('wizard-goals-container');
   container.innerHTML = wwwGoalsMaster.map(cat => `
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-      <h3 class="text-sm font-bold text-gray-800 mb-2">${cat.title}</h3>
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <h3 class="text-lg font-black text-gray-800 mb-2">${cat.title}</h3>
       <div class="flex flex-wrap gap-2">
         ${cat.tags.map(tag => `
           <label class="cursor-pointer">
             <input type="checkbox" value="${tag}" class="peer hidden wiz-goal-cb">
-            <div class="px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 text-xs font-medium border peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500">${tag}</div>
+            <div class="px-3 py-2 rounded-lg bg-gray-50 text-gray-600 text-base font-medium border peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500">${tag}</div>
           </label>
         `).join('')}
       </div>
@@ -761,13 +761,13 @@ function renderGoalSummary() {
     if (picked.length === 0) return '';
     return `
       <div class="mb-3">
-        <h4 class="font-bold text-gray-800 text-sm mb-1">${cat.title}</h4>
-        <ul class="list-disc pl-5 text-xs text-gray-600 space-y-0.5">
+        <h4 class="font-black text-gray-800 text-lg mb-1">${cat.title}</h4>
+        <ul class="list-disc pl-5 text-base text-gray-600 space-y-0.5">
           ${picked.map(p => `<li>${p}</li>`).join('')}
         </ul>
       </div>`;
   }).join('');
-  container.innerHTML = html || '<p class="text-xs text-gray-400">ยังไม่ได้เลือกเป้าหมาย</p>';
+  container.innerHTML = html || '<p class="text-base text-gray-400">ยังไม่ได้เลือกเป้าหมาย</p>';
   document.getElementById('goal-summary-monthly').value = wizardState.monthlyGoal || '';
 }
 
@@ -954,11 +954,11 @@ document.getElementById('btn-open-history').onclick = async () => {
     logs.push(d);
     html += `
       <div class="bg-white rounded-xl shadow-sm border border-pink-100 p-4">
-        <p class="text-xs text-gray-400 font-bold mb-2">${d.date}</p>
-        <div class="grid grid-cols-3 gap-2 text-center text-xs">
-          <div><p class="text-gray-400">น้ำหนัก</p><p class="font-bold theme-text">${d.weight} kg</p></div>
-          <div><p class="text-gray-400">ไขมัน</p><p class="font-bold theme-text">${d.fat}%</p></div>
-          <div><p class="text-gray-400">กล้ามเนื้อ</p><p class="font-bold theme-text">${d.muscle}%</p></div>
+        <p class="text-sm text-gray-400 font-bold mb-2">${d.date}</p>
+        <div class="grid grid-cols-3 gap-2 text-center text-base">
+          <div><p class="text-gray-400">น้ำหนัก</p><p class="font-black theme-text">${d.weight} kg</p></div>
+          <div><p class="text-gray-400">ไขมัน</p><p class="font-black theme-text">${d.fat}%</p></div>
+          <div><p class="text-gray-400">กล้ามเนื้อ</p><p class="font-black theme-text">${d.muscle}%</p></div>
         </div>
       </div>`;
   });
@@ -1148,9 +1148,9 @@ async function openMarchDashboard() {
     const unlocked = streak >= b.days;
     const box = unlocked ? 'text-amber-500 bg-amber-50 border-amber-200 shadow-sm' : 'text-gray-300 bg-gray-50 border-gray-100 opacity-60';
     return `
-      <div class="flex flex-col items-center justify-center p-2 rounded-2xl border ${box} text-center">
-        <i class="fa-solid ${b.icon} text-2xl mb-1"></i>
-        <p class="text-[10px] font-bold leading-tight ${unlocked ? 'text-amber-700' : 'text-gray-400'}">${b.title}</p>
+      <div class="flex flex-col items-center justify-center p-3 rounded-2xl border ${box} text-center">
+        <i class="fa-solid ${b.icon} text-3xl mb-1"></i>
+        <p class="text-sm font-bold leading-tight ${unlocked ? 'text-amber-700' : 'text-gray-400'}">${b.title}</p>
       </div>`;
   }).join('');
 }
@@ -1243,7 +1243,7 @@ async function openMarchBoard() {
     return `
       <div ${clickAttr} class="flex flex-col items-center cursor-pointer">
         <div class="w-full aspect-square rounded-2xl flex items-center justify-center ${boxStyle}">${icon}</div>
-        <p class="text-sm font-black mt-2 ${unlocked ? 'text-pink-600' : 'text-gray-400'}">${(m.steps/1000).toFixed(0)}k</p>
+        <p class="text-lg font-black mt-2 ${unlocked ? 'text-pink-600' : 'text-gray-400'}">${(m.steps/1000).toFixed(0)}k</p>
       </div>`;
   }).join('');
 
@@ -1456,7 +1456,7 @@ async function openSleepTracker() {
   document.getElementById('sleep-symptoms-container').innerHTML = sleepSymptoms.map(s => `
     <label class="cursor-pointer">
       <input type="checkbox" value="${s}" class="peer hidden sleep-symptom-cb">
-      <div class="px-3 py-1.5 rounded-full border border-indigo-200 text-xs text-indigo-700 font-bold peer-checked:bg-indigo-500 peer-checked:text-white">${s}</div>
+      <div class="px-4 py-2 rounded-full border border-indigo-200 text-base text-indigo-700 font-bold peer-checked:bg-indigo-500 peer-checked:text-white">${s}</div>
     </label>
   `).join('');
 
@@ -1543,9 +1543,9 @@ async function openFoodDirectory() {
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
       <img src="${f.image}" class="w-full h-40 object-cover">
       <div class="p-4">
-        <h3 class="font-black text-gray-800 text-base mb-1">${f.name}</h3>
-        <p class="text-xs text-gray-500 mb-3">${f.concept}</p>
-        <button onclick="openFoodDetail('${f.id}')" class="w-full bg-pink-600 text-white text-sm font-bold py-2.5 rounded-xl">
+        <h3 class="font-black text-gray-800 text-xl mb-1">${f.name}</h3>
+        <p class="text-base text-gray-500 mb-3">${f.concept}</p>
+        <button onclick="openFoodDetail('${f.id}')" class="w-full bg-pink-600 text-white text-lg font-black py-3 rounded-xl">
           <i class="fa-solid fa-utensils mr-2"></i> ดูสูตรและวิธีทำ
         </button>
       </div>
@@ -1564,7 +1564,7 @@ function renderBulletList(lines) {
       html += `<li>${text.substring(1).trim()}</li>`;
     } else {
       if (inSub) { html += '</ul>'; inSub = false; }
-      html += `<p class="font-bold text-gray-800 mt-2">${text}</p>`;
+      html += `<p class="font-black text-gray-800 mt-2 text-xl">${text}</p>`;
     }
   });
   if (inSub) html += '</ul>';
@@ -1587,14 +1587,14 @@ function openFoodDetail(id) {
   let stepCount = 1;
   document.getElementById('fd-instructions').innerHTML = (food.instructions || []).map(line => {
     const text = line.trim();
-    if (text.startsWith('-')) return `<p class="text-gray-600 pl-9 -mt-2">${text.substring(1).trim()}</p>`;
-    return `<div class="flex gap-3"><div class="w-6 h-6 rounded-full bg-pink-100 text-pink-600 font-black text-xs flex items-center justify-center shrink-0">${stepCount++}</div><p class="font-bold text-gray-800">${text}</p></div>`;
+    if (text.startsWith('-')) return `<p class="text-gray-600 pl-11 -mt-2">${text.substring(1).trim()}</p>`;
+    return `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 font-black text-base flex items-center justify-center shrink-0">${stepCount++}</div><p class="font-black text-gray-800 text-lg">${text}</p></div>`;
   }).join('');
 
   document.getElementById('fd-tips').innerHTML = (food.tips || []).map(tip => `
-    <div onclick="window.showToast('${tip.title}: ${tip.detail}', 'info', 4500)" class="min-w-[110px] w-[110px] bg-white rounded-2xl p-4 shadow-sm border border-gray-200 shrink-0 cursor-pointer text-center">
-      <div class="text-3xl mb-2">${tip.icon}</div>
-      <h4 class="font-bold text-gray-800 text-xs">${tip.title}</h4>
+    <div onclick="window.showToast('${tip.title}: ${tip.detail}', 'info', 4500)" class="min-w-[130px] w-[130px] bg-white rounded-2xl p-4 shadow-sm border border-gray-200 shrink-0 cursor-pointer text-center">
+      <div class="text-4xl mb-2">${tip.icon}</div>
+      <h4 class="font-black text-gray-800 text-base">${tip.title}</h4>
     </div>
   `).join('');
 
@@ -1656,13 +1656,13 @@ function renderZone2Levels() {
   container.innerHTML = bpmLevels.map(l => `
     <div class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm">
       <div class="flex justify-between items-center mb-3">
-        <span class="font-black text-gray-800">${l.label}</span>
-        <button class="zone2-play-btn bg-pink-50 theme-text w-10 h-10 rounded-full flex items-center justify-center" data-audio="${l.id}">
+        <span class="font-black text-gray-800 text-lg">${l.label}</span>
+        <button class="zone2-play-btn bg-pink-50 theme-text w-12 h-12 rounded-full flex items-center justify-center text-lg" data-audio="${l.id}">
           <i class="fa-solid fa-play"></i>
         </button>
         <audio id="${l.id}" class="hidden" src="${l.src}"></audio>
       </div>
-      <button class="zone2-confirm-btn w-full bg-pink-50 theme-text py-2.5 rounded-xl font-bold border border-pink-200" data-label="${l.label}">เลือกระดับนี้</button>
+      <button class="zone2-confirm-btn w-full bg-pink-50 theme-text py-3 rounded-xl font-black text-lg border border-pink-200" data-label="${l.label}">เลือกระดับนี้</button>
     </div>
   `).join('');
 
@@ -1711,13 +1711,13 @@ function renderPlaylist() {
   document.getElementById('playlist-container').innerHTML = playlistData.map(p => `
     <div class="bg-gradient-to-r ${p.color} p-5 rounded-3xl shadow-md text-white">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-black text-lg">${p.level}</h3>
-        <span class="bg-white/20 text-xs font-bold px-3 py-1.5 rounded-lg">${p.bpm}</span>
+        <h3 class="font-black text-xl">${p.level}</h3>
+        <span class="bg-white/20 text-base font-bold px-3 py-1.5 rounded-lg">${p.bpm}</span>
       </div>
       <div class="flex gap-2">
-        <button onclick="window.open('https://open.spotify.com/', '_blank')" class="flex-1 bg-white/20 text-white text-xs font-bold py-3 rounded-xl"><i class="fa-brands fa-spotify"></i> Spotify</button>
-        <button onclick="window.open('${p.ytMusic}', '_blank')" class="flex-1 bg-white/20 text-white text-xs font-bold py-3 rounded-xl"><i class="fa-brands fa-youtube"></i> YT Music</button>
-        <button onclick="window.open('https://youtube.com/', '_blank')" class="flex-1 bg-white/20 text-white text-xs font-bold py-3 rounded-xl"><i class="fa-solid fa-play"></i> YouTube</button>
+        <button onclick="window.open('https://open.spotify.com/', '_blank')" class="flex-1 bg-white/20 text-white text-base font-bold py-3.5 rounded-xl"><i class="fa-brands fa-spotify"></i> Spotify</button>
+        <button onclick="window.open('${p.ytMusic}', '_blank')" class="flex-1 bg-white/20 text-white text-base font-bold py-3.5 rounded-xl"><i class="fa-brands fa-youtube"></i> YT Music</button>
+        <button onclick="window.open('https://youtube.com/', '_blank')" class="flex-1 bg-white/20 text-white text-base font-bold py-3.5 rounded-xl"><i class="fa-solid fa-play"></i> YouTube</button>
       </div>
     </div>
   `).join('');
@@ -1866,47 +1866,46 @@ function buildRecapSlides(s) {
   const slides = [];
 
   slides.push(`
-    <i class="fa-solid fa-flag-checkered text-5xl text-amber-400 mb-6"></i>
-    <p class="text-sm text-gray-300 mb-2">1 / 5</p>
-    <h2 class="text-2xl font-black leading-relaxed">คุณเข้าร่วมโครงการ<br>ในวันที่<br><span class="text-amber-400">${s.joinDateText}</span></h2>
+    <i class="fa-solid fa-flag-checkered text-6xl text-amber-400 mb-6"></i>
+    <p class="text-base text-gray-300 mb-2">1 / 5</p>
+    <h2 class="text-3xl font-black leading-relaxed">คุณเข้าร่วมโครงการ<br>ในวันที่<br><span class="text-amber-400">${s.joinDateText}</span></h2>
   `);
 
   slides.push(`
-    <i class="fa-solid fa-bowl-food text-5xl text-emerald-400 mb-6"></i>
-    <p class="text-sm text-gray-300 mb-2">2 / 5</p>
-    <h2 class="text-2xl font-black leading-relaxed">คุณได้เปลี่ยนมื้ออาหาร<br>ให้กินดีมากขึ้น<br><span class="text-emerald-400">${s.mealsChanged} มื้อ</span></h2>
-    <p class="text-xs text-gray-400 mt-4">เงินทั้งหมดได้ไปสนับสนุนมูลนิธิการศึกษา<br>เพื่อการพัฒนาที่ยั่งยืน</p>
+    <i class="fa-solid fa-bowl-food text-6xl text-emerald-400 mb-6"></i>
+    <p class="text-base text-gray-300 mb-2">2 / 5</p>
+    <h2 class="text-3xl font-black leading-relaxed">คุณได้เปลี่ยนมื้ออาหาร<br>ให้กินดีมากขึ้น<br><span class="text-emerald-400">${s.mealsChanged} มื้อ</span></h2>
+    <p class="text-base text-gray-400 mt-4">เงินทั้งหมดได้ไปสนับสนุนมูลนิธิการศึกษา<br>เพื่อการพัฒนาที่ยั่งยืน</p>
   `);
 
   slides.push(`
-    <i class="fa-solid fa-shoe-prints text-5xl text-pink-400 mb-6"></i>
-    <p class="text-sm text-gray-300 mb-2">3 / 5</p>
-    <h2 class="text-2xl font-black leading-relaxed">ก้าวเดินสะสมตลอดเดือนนี้<br><span class="text-pink-400">${s.stepsThisMonth.toLocaleString()} ก้าว</span></h2>
-    <p class="text-xs text-gray-300 mt-4">เทียบเท่าการเดินจาก<br>${distanceToRouteText(s.distanceKm)}</p>
-    <p class="text-xs text-gray-400 mt-2">และเดินติดต่อกันครบ 10,000 ก้าว ${s.streak10k} วัน</p>
+    <i class="fa-solid fa-shoe-prints text-6xl text-pink-400 mb-6"></i>
+    <p class="text-base text-gray-300 mb-2">3 / 5</p>
+    <h2 class="text-3xl font-black leading-relaxed">ก้าวเดินสะสมตลอดเดือนนี้<br><span class="text-pink-400">${s.stepsThisMonth.toLocaleString()} ก้าว</span></h2>
+    <p class="text-base text-gray-300 mt-4">เทียบเท่าการเดินจาก<br>${distanceToRouteText(s.distanceKm)}</p>
+    <p class="text-base text-gray-400 mt-2">และเดินติดต่อกันครบ 10,000 ก้าว ${s.streak10k} วัน</p>
   `);
 
   slides.push(`
-    <p class="text-6xl mb-6">${sleepMoodEmoji[s.sleepAvg] || '💤'}</p>
-    <p class="text-sm text-gray-300 mb-2">4 / 5</p>
-    <h2 class="text-2xl font-black leading-relaxed">การนอนและตื่นของคุณ<br>โดยเฉลี่ยเดือนนี้</h2>
+    <p class="text-7xl mb-6">${sleepMoodEmoji[s.sleepAvg] || '💤'}</p>
+    <p class="text-base text-gray-300 mb-2">4 / 5</p>
+    <h2 class="text-3xl font-black leading-relaxed">การนอนและตื่นของคุณ<br>โดยเฉลี่ยเดือนนี้</h2>
   `);
 
   slides.push(`
-    <i class="fa-solid fa-seedling text-5xl text-teal-400 mb-6"></i>
-    <p class="text-sm text-gray-300 mb-2">5 / 5</p>
-    <h2 class="text-xl font-black leading-relaxed mb-4">คุณเปลี่ยนเวลาจากมือถือ/โซเชียล<br>ไปสู่สิ่งสร้างสรรค์</h2>
-    <div class="text-sm text-gray-200 text-left space-y-1">
+    <i class="fa-solid fa-seedling text-6xl text-teal-400 mb-6"></i>
+    <p class="text-base text-gray-300 mb-2">5 / 5</p>
+    <h2 class="text-2xl font-black leading-relaxed mb-4">คุณเปลี่ยนเวลาจากมือถือ/โซเชียล<br>ไปสู่สิ่งสร้างสรรค์</h2>
+    <div class="text-lg text-gray-200 text-left space-y-1">
       ${s.activities.length ? s.activities.map(a => `<p>• ${a}</p>`).join('') : '<p class="text-gray-400">ยังไม่มีข้อมูลกิจกรรมเดือนนี้</p>'}
       ${s.readingMinutes > 0 ? `<p>• ใช้เวลากับหนังสือเล่มโปรด ${s.readingMinutes} นาที</p>` : ''}
       ${s.eventConnections > 0 ? `<p>• ได้เจอเพื่อนใหม่ ${s.eventConnections} คนจากงานกิจกรรม</p>` : ''}
     </div>
   `);
 
-  // สรุปรวมหน้าเดียว
   slides.push(`
-    <h2 class="text-lg font-black mb-5">สรุปเดือนนี้ของคุณ</h2>
-    <div class="text-left text-sm text-gray-200 space-y-3 w-full">
+    <h2 class="text-xl font-black mb-5">สรุปเดือนนี้ของคุณ</h2>
+    <div class="text-left text-lg text-gray-200 space-y-3 w-full">
       <p>🚩 เข้าร่วมวันที่ ${s.joinDateText}</p>
       <p>🥗 เปลี่ยนมื้ออาหาร ${s.mealsChanged} มื้อ</p>
       <p>👣 เดิน ${s.stepsThisMonth.toLocaleString()} ก้าว (ครบ 10,000/วัน ${s.streak10k} วัน)</p>
@@ -1955,7 +1954,7 @@ function openRecapEval() {
   document.getElementById('recap-eval-text').value = '';
   document.getElementById('recap-eval-error').classList.add('hidden');
   document.getElementById('recap-eval-options').innerHTML = recapEvalLabels.map(label => `
-    <button data-choice="${label}" class="recap-eval-btn bg-white/10 text-white py-3 rounded-xl font-bold border border-white/10">${label}</button>
+    <button data-choice="${label}" class="recap-eval-btn bg-white/10 text-white py-4 rounded-xl font-black text-lg border border-white/10">${label}</button>
   `).join('');
   document.querySelectorAll('.recap-eval-btn').forEach(btn => {
     btn.onclick = () => {
