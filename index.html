@@ -158,8 +158,8 @@
       </div>
     </div>
 
-    <!-- หน้า Login -->
-    <div id="login-view" class="page-section active p-4 pt-10">
+    <!-- หน้า Login (สำรอง โผล่เฉพาะตอน auto-login ล้มเหลวเท่านั้น) -->
+    <div id="login-view" class="page-section p-4 pt-10">
       <div class="text-center mb-8">
         <div class="w-20 h-20 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">
           <i class="fa-solid fa-user-lock"></i>
@@ -172,24 +172,30 @@
         <i class="fa-brands fa-line text-2xl"></i> เข้าสู่ระบบด้วย LINE
       </button>
 
-      <div class="flex items-center gap-3 my-4">
-        <div class="flex-1 h-px bg-gray-200"></div>
-        <span class="text-base text-gray-400 font-bold">หรือ</span>
-        <div class="flex-1 h-px bg-gray-200"></div>
-      </div>
+      <button id="btn-show-phone-login" class="w-full text-gray-400 text-base font-bold py-2 mb-4">
+        หรือเข้าสู่ระบบด้วยเบอร์โทรศัพท์แทน
+      </button>
 
-      <div class="space-y-4">
+      <div id="phone-login-box" class="hidden space-y-4">
         <div>
           <label class="text-base font-bold text-gray-500 mb-1 block">เบอร์โทรศัพท์</label>
-          <input id="login-email" type="email" class="form-input text-lg" placeholder="กรอกเบอร์โทรศัพท์...">
+          <input id="login-email" type="tel" class="form-input text-lg" placeholder="กรอกเบอร์โทรศัพท์...">
         </div>
         <div>
           <label class="text-base font-bold text-gray-500 mb-1 block">รหัสผ่าน</label>
           <input id="login-pass" type="password" class="form-input text-lg" placeholder="กรอกรหัสผ่าน...">
         </div>
         <div id="login-error" class="bg-red-50 text-red-600 text-base p-3 rounded-lg text-center font-bold hidden"></div>
-        <button id="btn-login" class="w-full theme-pink text-white py-4 rounded-2xl font-black shadow-md hover:bg-pink-700 transition text-lg">เข้าสู่ระบบด้วยเบอร์โทรศัพท์</button>
+        <button id="btn-login" class="w-full theme-pink text-white py-4 rounded-2xl font-black text-lg">เข้าสู่ระบบด้วยเบอร์โทรศัพท์</button>
         <p class="text-center text-base text-gray-400 mt-2">*ใช้ได้เฉพาะบัญชีที่เคยตั้งรหัสผ่านไว้ตอนสมัครสมาชิกผ่าน LINE เท่านั้น</p>
+      </div>
+    </div>
+
+    <!-- 🆕 หน้ากำลังเชื่อมต่อ LINE อัตโนมัติ (โผล่ก่อนเสมอตอนเปิดแอป) -->
+    <div id="auto-login-view" class="page-section active flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <div class="w-12 h-12 border-4 border-pink-100 border-t-pink-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-gray-400 text-lg font-bold">กำลังเข้าสู่ระบบ...</p>
       </div>
     </div>
 

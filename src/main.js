@@ -76,6 +76,11 @@ document.getElementById('btn-login-line').onclick = () => {
   initLineAuth();
 };
 
+document.getElementById('btn-show-phone-login').onclick = () => {
+  document.getElementById('phone-login-box').classList.remove('hidden');
+  document.getElementById('btn-show-phone-login').classList.add('hidden');
+};
+
 document.getElementById('btn-login').onclick = async () => {
   const phone = document.getElementById('login-phone').value.trim();
   const pass = document.getElementById('login-pass').value;
@@ -115,7 +120,13 @@ onAuthStateChanged(auth, async (user) => {
     if (complete) showView('profile-view');
   } else {
     currentUid = null;
-    showView('login-view');   // ✅ แค่โชว์หน้า login เฉยๆ ไม่บังคับ LINE
+    // 🆕 เรียก LINE login อัตโนมัติทันที ไม่ต้องกดปุ่มเอง
+    try {
+      await initLineAuth();
+    } catch (err) {
+      console.error('Auto LINE login failed:', err);
+      showView('login-view'); // ถ้าล้มเหลว ค่อยโชว์หน้า login สำรอง
+    }
   }
 });
 
