@@ -2,7 +2,6 @@ import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
-// ตั้งค่า Firebase Admin แค่ครั้งเดียว (กันการรันซ้ำ)
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -27,7 +26,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ขั้นที่ 1: ส่ง idToken ไปให้ LINE ตรวจสอบว่าเป็นของจริง ไม่ได้ปลอมมา
     const params = new URLSearchParams();
     params.append('id_token', idToken);
     params.append('client_id', process.env.LINE_CHANNEL_ID);
@@ -43,17 +41,14 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'LINE token ไม่ถูกต้อง', detail: verifyData });
     }
 
-    // ขั้นที่ 2: ใช้ LINE user id (sub) มาสร้าง uid ของ Firebase แบบคงที่
     const lineUserId = verifyData.sub;
     const uid = `line_${lineUserId}`;
 
-    // ขั้นที่ 3: เช็คว่าเคยมีบัญชีนี้ใน Firestore หรือยัง
     const userDocRef = adminDb.collection('users').doc(uid);
     const userDoc = await userDocRef.get();
     const isNewUser = !userDoc.exists;
 
     if (isNewUser) {
-      // สร้างรหัสสมาชิกทันที
       let memberId, exists = true;
       while (exists) {
         const rand = Math.floor(100000 + Math.random() * 900000);
@@ -66,13 +61,13 @@ export default async function handler(req, res) {
         name: verifyData.name || 'สมาชิก Goodday',
         profileImage: verifyData.picture || '',
         memberId,
-        profileComplete: true,   // 🆕 ถือว่าเป็นสมาชิกทันที ไม่ต้องกรอกฟอร์มก่อน
-        pdpaAccepted: false,     // 🆕 ยังไม่ยินยอม รอ popup ครั้งแรก
+        profileComplete: true,
+        pdpaAccepted: false,
         createdAt: new Date()
       });
     }
 
-    const customToken = createFirebaseCustomToken(uid);
+    const customToken = await adminAuth.createCustomToken(uid);
 
     return res.status(200).json({ customToken, isNewUser, lineName: verifyData.name || '' });
   } catch (err) {
