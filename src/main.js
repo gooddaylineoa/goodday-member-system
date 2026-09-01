@@ -174,13 +174,13 @@ function phoneToSyntheticEmail(phone) {
 // แยกฟังก์ชันโหลดโปรไฟล์ออกมา เพื่อเรียกซ้ำได้ (ตอน login และตอนบันทึกที่อยู่เสร็จ)
 async function loadProfile(uid) {
   const snap = await getDoc(doc(db, 'users', uid));
-  if (!snap.exists()) return;   // 🆕 กันเอกสารยังไม่มีเลย (เพิ่งสร้างบัญชีเสร็จหมาดๆ)
+  if (!snap.exists()) return;
   const data = snap.data();
   document.getElementById('prof-memberid').innerText = data.memberId || '-';
   document.getElementById('prof-name').innerText = data.name || 'สมาชิกใหม่';
 
   const headerName = document.getElementById('header-name');
-  if (headerName) headerName.innerText = data.name || 'ผู้ใช้งาน';   // 🆕 เพิ่ม fallback
+  if (headerName) headerName.innerText = data.name || 'ผู้ใช้งาน';
 
   const profPic = document.getElementById('prof-pic');
   if (profPic && data.profileImage) {
@@ -201,7 +201,26 @@ async function loadProfile(uid) {
 
   const wwwMenu = document.getElementById('www-menu-item');
   if (wwwMenu) wwwMenu.classList.toggle('hidden', data.wellProject !== true);
+
+  // 🆕 เช็คว่าข้อมูลสำคัญ (เบอร์โทร + ที่อยู่) ครบหรือยัง โชว์ banner เตือนถ้ายังไม่ครบ
+  const banner = document.getElementById('profile-incomplete-banner');
+  if (banner) {
+    const isComplete = !!(data.phone && data.address);
+    banner.classList.toggle('hidden', isComplete);
+    banner.onclick = () => openProfileEditForm(data);
+  }
 }
+
+// 🆕 ฟังก์ชันใหม่: เปิดฟอร์มแก้ไขโปรไฟล์ พร้อม prefill ข้อมูลเดิมที่มีอยู่แล้ว
+function openProfileEditForm(data) {
+  document.getElementById('r1-title').value = data.title || '';
+  document.getElementById('r1-fullname').value = data.name || '';
+  document.getElementById('r1-lineid').value = data.lineIdInput || '';
+  document.getElementById('r1-email').value = data.email || '';
+  renderRegisterProvinceOptions();
+  showView('register-step1-view');
+}
+window.openProfileEditForm = openProfileEditForm;
 
 // --- แสดงกล่อง Waste box ในหน้าโปรไฟล์ ตามสถานะ ---
 // หมายเหตุ: ไม่แตะ className/โครง HTML ของ #waste-box อีกต่อไป (โครงเดิมใน index.html
@@ -2039,6 +2058,8 @@ document.getElementById('btn-join-library').onclick = async () => {
   }
 };
 
+document.getElementById('btn-cancel-r1').onclick = () => showView('profile-view');
+
 document.getElementById('btn-cancel-library').onclick = () => showView('profile-view');
 document.getElementById('btn-back-library-card').onclick = () => showView('profile-view');
 
@@ -2062,11 +2083,15 @@ window.hideLoading = hideLoading;
 async function checkProfileComplete(uid) {
   const snap = await getDoc(doc(db, 'users', uid));
   const data = snap.exists() ? snap.data() : null;
-  if (!data || !data.profileComplete) {
-    renderRegisterProvinceOptions();
-    showView('register-step1-view');
-    return false;
+
+  // กรณีผิดปกติจริงๆ (ไม่ควรเกิดแล้ว เพราะ api/line-login.js สร้างให้ทันที)
+  if (!data) return false;
+
+  // 🆕 ถ้ายังไม่เคยยอมรับ PDPA ให้โชว์ป็อปอัพสั้นๆ ก่อนใช้งาน (ครั้งแรกครั้งเดียว)
+  if (!data.pdpaAccepted) {
+    showPdpaModal();
   }
+
   return true;
 }
 window.checkProfileComplete = checkProfileComplete;
@@ -2255,7 +2280,7 @@ document.getElementById('btn-r2-submit').onclick = async () => {
     await loadProfile(currentUid);
     hideLoading();
     showView('profile-view');
-    showToast('สมัครสมาชิกสำเร็จ ยินดีต้อนรับ!', 'success');
+    showToast('บันทึกข้อมูลสำเร็จ!', 'success');
   } catch (err) {
     hideLoading();
     let msg = err.message;
@@ -2303,3 +2328,33 @@ function fillLibraryProvinceSelect() {
   });
 }
 fillLibraryProvinceSelect();
+
+function showPdpaModal() {
+  const modal = document.getElementById('pdpa-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+document.getElementById('pdpa-modal-link').onclick = () => {
+  window.open('https://www.ratchakitcha.soc.go.th/DATA/PDF/2562/A/069/T_0052.PDF', '_blank');
+};
+
+document.getElementById('btn-pdpa-modal-confirm').onclick = async () => {
+  if (!document.getElementById('pdpa-modal-checkbox').checked) {
+    showToast('กรุณายอมรับนโยบายก่อนใช้งานต่อ', 'error');
+    return;
+  }
+  showLoading('กำลังบันทึก...');
+  try {
+    await updateDoc(doc(db, 'users', currentUid), {
+      pdpaAccepted: true,
+      pdpaAcceptedAt: serverTimestamp()
+    });
+    document.getElementById('pdpa-modal').classList.add('hidden');
+    document.getElementById('pdpa-modal').classList.remove('flex');
+  } catch (err) {
+    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  } finally {
+    hideLoading();
+  }
+};

@@ -195,8 +195,11 @@
 
     <!-- หน้ากรอกข้อมูลส่วนตัว ส่วนที่ 1 -->
     <div id="register-step1-view" class="page-section p-4 pt-6">
-      <h2 class="text-2xl font-black theme-text mb-1">สร้างบัญชี (1/2)</h2>
-      <p class="text-lg text-gray-400 mb-5">กรอกข้อมูลส่วนตัวของท่าน</p>
+      <div class="flex items-center mb-1">
+        <button id="btn-cancel-r1" class="w-10 h-10 bg-gray-100 rounded-full text-gray-600 mr-3 text-lg"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-2xl font-black theme-text">ข้อมูลส่วนตัว (1/2)</h2>
+      </div>
+      <p class="text-lg text-gray-400 mb-5 ml-1">กรอกหรือแก้ไขข้อมูลส่วนตัวของท่าน</p>
 
       <div class="space-y-4">
         <div class="grid grid-cols-3 gap-2">
@@ -294,6 +297,16 @@
         <h2 id="prof-memberid" class="text-4xl font-black tracking-wider mb-2 drop-shadow-sm">GD-XXXXX</h2>
         <h3 id="prof-name" class="text-xl font-bold drop-shadow-sm">นาย/นางสาว ...</h3>
       </div>
+      
+      <div id="profile-incomplete-banner" class="hidden mx-4 mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 cursor-pointer">
+        <i class="fa-solid fa-circle-exclamation text-amber-500 text-2xl"></i>
+        <div class="flex-1">
+          <p class="font-bold text-amber-800 text-base">กรอกข้อมูลเพิ่มเติม</p>
+          <p class="text-sm text-amber-600">เพิ่มเบอร์โทร/ที่อยู่ เพื่อใช้งานระบบได้อย่างครบถ้วน</p>
+        </div>
+        <i class="fa-solid fa-chevron-right text-amber-400"></i>
+      </div>
+      
 
       <!-- เมนูที่ 1: กรอกข้อมูลสุขภาพ -->
       <div onclick="openHealthForm()"
@@ -1386,6 +1399,24 @@
     <div id="loading-overlay" class="fixed inset-0 bg-black/50 z-[10000] hidden flex-col items-center justify-center">
       <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
       <p class="text-white font-black text-lg mt-4">กำลังประมวลผล...</p>
+    </div>
+
+    <!-- ป็อปอัพยินยอม PDPA (โผล่ครั้งแรกที่ login เท่านั้น) -->
+    <div id="pdpa-modal" class="fixed inset-0 bg-black/60 z-[9999] hidden flex-col items-center justify-center p-6">
+      <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-xl">
+        <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 class="text-xl font-black text-gray-800 mb-2">ยินดีต้อนรับสู่ Goodday!</h3>
+        <p class="text-sm text-gray-500 mb-4">ก่อนเริ่มใช้งาน กรุณายอมรับนโยบายความเป็นส่วนตัวของเรา</p>
+        <label class="flex items-start gap-2 cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-3 text-left mb-4">
+          <input type="checkbox" id="pdpa-modal-checkbox" class="w-5 h-5 mt-0.5">
+          <span class="text-xs text-gray-700">ข้าพเจ้าได้ศึกษาและยอมรับ
+            <span id="pdpa-modal-link" class="theme-text font-bold underline">นโยบายการเก็บข้อมูลส่วนบุคคล (PDPA)</span>
+            แล้ว</span>
+        </label>
+        <button id="btn-pdpa-modal-confirm" class="w-full theme-pink text-white py-3 rounded-xl font-bold">ยืนยันและเริ่มใช้งาน</button>
+      </div>
     </div>
 
     <!-- ป็อปอัพครอปรูป -->

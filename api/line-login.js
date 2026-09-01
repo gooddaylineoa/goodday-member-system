@@ -52,14 +52,29 @@ export default async function handler(req, res) {
     const userDoc = await userDocRef.get();
     const isNewUser = !userDoc.exists;
 
-    // ขั้นที่ 4: ออก "ตั๋วเข้า Firebase" (Custom Token) ให้ uid นี้
-    const customToken = await adminAuth.createCustomToken(uid);
+    if (isNewUser) {
+      // สร้างรหัสสมาชิกทันที
+      let memberId, exists = true;
+      while (exists) {
+        const rand = Math.floor(100000 + Math.random() * 900000);
+        memberId = 'GD-' + rand;
+        const dupSnap = await adminDb.collection('users').where('memberId', '==', memberId).get();
+        exists = !dupSnap.empty;
+      }
 
-    return res.status(200).json({
-      customToken,
-      isNewUser,
-      lineName: verifyData.name || ''
-    });
+      await userDocRef.set({
+        name: verifyData.name || 'สมาชิก Goodday',
+        profileImage: verifyData.picture || '',
+        memberId,
+        profileComplete: true,   // 🆕 ถือว่าเป็นสมาชิกทันที ไม่ต้องกรอกฟอร์มก่อน
+        pdpaAccepted: false,     // 🆕 ยังไม่ยินยอม รอ popup ครั้งแรก
+        createdAt: new Date()
+      });
+    }
+
+    const customToken = createFirebaseCustomToken(uid);
+
+    return res.status(200).json({ customToken, isNewUser, lineName: verifyData.name || '' });
   } catch (err) {
     console.error('LINE login error:', err);
     return res.status(500).json({ error: err.message });
