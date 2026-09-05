@@ -2237,56 +2237,43 @@ document.getElementById('btn-r2-submit').onclick = async () => {
     showLoading('กำลังตรวจสอบข้อมูล...');
 
     try {
-      const checkRes = await fetch('/api/check-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'checkPhone', phone, excludeUid: currentUid })
-      });
-      const checkData = await checkRes.json();
-
-      if (checkData.isDuplicate) {
-        hideLoading();
-        errBox.innerText = 'เบอร์โทรศัพท์นี้มีการสมัครสมาชิกไปแล้ว กรุณาใช้เบอร์อื่น';
-        errBox.classList.remove('hidden');
-        return;
-      }
-    } catch (checkErr) {
-      hideLoading();
-      errBox.innerText = 'ตรวจสอบข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
-      errBox.classList.remove('hidden');
-      return;
-    }
-
-    showLoading('กำลังสร้างบัญชีสมาชิก...');
-
+  const syntheticEmail = phoneToSyntheticEmail(phone);
   try {
-    const syntheticEmail = phoneToSyntheticEmail(phone);
-    try {
-      const credential = EmailAuthProvider.credential(syntheticEmail, password);
-      await linkWithCredential(auth.currentUser, credential);
-    } catch (linkErr) {
-      if (linkErr.code !== 'auth/provider-already-linked') throw linkErr;
-    }
+    const credential = EmailAuthProvider.credential(syntheticEmail, password);
+    await linkWithCredential(auth.currentUser, credential);
+  } catch (linkErr) {
+    if (linkErr.code !== 'auth/provider-already-linked') throw linkErr;
+  }
 
-    const memberId = await generateUniqueMemberId();
+  // 🆕 เช็คก่อนว่ามี memberId/createdAt เดิมอยู่แล้วหรือยัง (กรณีแก้ไขข้อมูลซ้ำผ่านกล่องเหลือง)
+  const existingSnap = await getDoc(doc(db, 'users', currentUid));
+  const existingData = existingSnap.exists() ? existingSnap.data() : null;
 
-    await setDoc(doc(db, 'users', currentUid), {
-      title: registerState.title || '',
-      name: registerState.fullname,
-      phone: phone,
-      email: registerState.email || '',
-      lineIdInput: registerState.lineIdInput || '',
-      birthdate: registerState.birthdate,
-      birthdateUnknown: registerState.birthdateUnknown,
-      age: registerState.age,
-      hasPasswordLogin: true,
-      address: { subdist, dist, prov, zip },
-      pdpaAccepted: true,
-      pdpaAcceptedAt: serverTimestamp(),
-      memberId,
-      profileComplete: true,
-      createdAt: serverTimestamp()
-    }, { merge: true });
+  const memberId = existingData?.memberId || await generateUniqueMemberId();
+
+  const dataToSave = {
+    title: registerState.title || '',
+    name: registerState.fullname,
+    phone: phone,
+    email: registerState.email || '',
+    lineIdInput: registerState.lineIdInput || '',
+    birthdate: registerState.birthdate,
+    birthdateUnknown: registerState.birthdateUnknown,
+    age: registerState.age,
+    hasPasswordLogin: true,
+    address: { subdist, dist, prov, zip },
+    pdpaAccepted: true,
+    pdpaAcceptedAt: serverTimestamp(),
+    memberId,
+    profileComplete: true
+  };
+
+  // 🆕 ตั้ง createdAt แค่ตอนที่ยังไม่เคยมีมาก่อนเท่านั้น (ป้องกันวันที่สมัครเปลี่ยนไปเรื่อยๆ)
+  if (!existingData?.createdAt) {
+    dataToSave.createdAt = serverTimestamp();
+  }
+
+  await setDoc(doc(db, 'users', currentUid), dataToSave, { merge: true });
 
     await loadProfile(currentUid);
     hideLoading();
