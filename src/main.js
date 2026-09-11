@@ -117,7 +117,13 @@ onAuthStateChanged(auth, async (user) => {
     currentUid = user.uid;
     await loadProfile(currentUid);
     const complete = await checkProfileComplete(currentUid);
-    if (complete) showView('profile-view');
+    if (complete) {
+      showView('profile-view');
+    } else {
+      // 🆕 กันเคสข้อมูลหาย/ถูกลบ ไม่ให้ค้างจอหมุนตลอดไป
+      showToast('ไม่พบข้อมูลบัญชี กำลังออกจากระบบ...', 'error');
+      await signOut(auth);
+    }
   } else {
     currentUid = null;
     // 🆕 เรียก LINE login อัตโนมัติทันที ไม่ต้องกดปุ่มเอง
