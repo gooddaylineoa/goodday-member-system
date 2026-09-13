@@ -2036,8 +2036,7 @@ document.getElementById('btn-recap-finish').onclick = () => showView('www-hub-vi
 // รายชื่อสาขา ผูกกับจังหวัด (ถ้าสาขาไม่เยอะ เก็บเป็น static config พอ ไม่ต้องทำ Firestore collection)
 const libraryBranches = {
   "ชลบุรี": [
-    { id: "cb-01", name: "ห้องสมุดประชาชนจังหวัดชลบุรี" },
-    { id: "cb-02", name: "ห้องสมุดประชาชนอำเภอศรีราชา" }
+    { id: "cb-01", name: "ห้องสมุดประชาชน เฉลิมราชกุมารี อำเภอสัตหีบ" },
   ],
   "สงขลา": [ /* ... */ ]
 };

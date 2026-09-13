@@ -54,6 +54,8 @@
       display: block !important;
     }
 
+    .page-section.active.flex { display: flex !important; }
+
     /* ===== ปุ่มทุกปุ่มยุบเวลากด (เหมือนเมนูหน้าโปรไฟล์) ===== */
     button,
     .cursor-pointer,
@@ -192,7 +194,7 @@
     </div>
 
     <!-- 🆕 หน้ากำลังเชื่อมต่อ LINE อัตโนมัติ (โผล่ก่อนเสมอตอนเปิดแอป) -->
-    <div id="auto-login-view" class="page-section active flex items-center justify-center min-h-screen">
+    <div id="auto-login-view" class="page-section active fixed inset-0 z-[9999] bg-white flex items-center justify-center">
       <div class="text-center">
         <div class="w-12 h-12 border-4 border-pink-100 border-t-pink-600 rounded-full animate-spin mx-auto mb-4"></div>
         <p class="text-gray-400 text-lg font-bold">กำลังเข้าสู่ระบบ...</p>
