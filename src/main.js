@@ -1137,153 +1137,13 @@ document.getElementById('btn-back-march').onclick = () => showView('www-hub-view
 document.getElementById('btn-cancel-march-entry').onclick = () => showView('march-board-view');
 document.getElementById('btn-open-march-entry').onclick = () => showView('march-entry-view');
 
-document.getElementById('btn-open-walkathon-intro').onclick = openWalkathonEntry;
+// --- เส้นทาง Thailand Walkathon: หน้าหลัก -> intro -> เลือกจังหวัด -> กระดานตะลอนชลบุรี ---
+document.getElementById('btn-open-walkathon-intro').onclick = () => showView('walkathon-intro-view');
 document.getElementById('btn-back-walkathon-intro').onclick = () => showView('march-dashboard-view');
-document.getElementById('btn-start-walkathon').onclick = () => openWalkathonMap();
+document.getElementById('btn-start-walkathon').onclick = () => showView('walkathon-map-view');
 document.getElementById('btn-back-walkathon-map').onclick = () => showView('walkathon-intro-view');
+document.getElementById('btn-confirm-province').onclick = () => openMarchBoard();
 document.getElementById('btn-back-march-board').onclick = () => showView('walkathon-map-view');
-document.getElementById('btn-close-milestone-modal').onclick = () => {
-  document.getElementById('milestone-modal').classList.add('hidden');
-  document.getElementById('milestone-modal').classList.remove('flex');
-};
-
-// เข้าจุดเริ่มต้น Walkathon: ถ้ามีฤดูกาลที่ยังไม่ครบ 30 วัน ให้เข้ากระดานเลย ไม่ต้องผ่าน intro ซ้ำ
-async function openWalkathonEntry() {
-  const snap = await getDoc(doc(db, 'users', currentUid));
-  const data = snap.data();
-  if (data.walkathon && data.walkathon.startedAt) {
-    await openMarchBoard();
-  } else {
-    showView('walkathon-intro-view');
-  }
-}
-
-// ================= Walkathon: เลือกจังหวัด =================
-
-const WALKATHON_LOCK_DAYS = 30;
-
-async function openWalkathonMap() {
-  showView('walkathon-map-view');
-  const listBox = document.getElementById('walkathon-province-list');
-  listBox.innerHTML = '<p class="text-center text-gray-400 py-8">กำลังโหลด...</p>';
-
-  const userSnap = await getDoc(doc(db, 'users', currentUid));
-  const userData = userSnap.data();
-  const currentWalkathon = userData.walkathon || null;
-
-  let daysLeft = 0;
-  if (currentWalkathon && currentWalkathon.startedAt) {
-    const startedDate = currentWalkathon.startedAt.toDate();
-    const diffDays = (new Date() - startedDate) / (1000 * 60 * 60 * 24);
-    daysLeft = Math.max(Math.ceil(WALKATHON_LOCK_DAYS - diffDays), 0);
-  }
-  const isLocked = daysLeft > 0;
-
-  const lockBanner = document.getElementById('walkathon-lock-banner');
-  if (isLocked) {
-    const unlockDate = new Date(currentWalkathon.startedAt.toDate());
-    unlockDate.setDate(unlockDate.getDate() + WALKATHON_LOCK_DAYS);
-    document.getElementById('wm-current-province').innerText = currentWalkathon.provinceName;
-    document.getElementById('wm-unlock-date').innerText = unlockDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-    lockBanner.classList.remove('hidden');
-  } else {
-    lockBanner.classList.add('hidden');
-  }
-
-  const provSnap = await getDocs(collection(db, 'walkathonProvinces'));
-  const provinces = [];
-  provSnap.forEach(d => provinces.push({ id: d.id, ...d.data() }));
-  provinces.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-  listBox.innerHTML = provinces.map(p => {
-    const isCurrent = currentWalkathon && currentWalkathon.provinceId === p.id;
-
-    if (!p.active) {
-      return `
-        <div class="bg-gray-100 rounded-3xl overflow-hidden border border-gray-200 opacity-60 relative">
-          ${p.posterImage ? `<img src="${p.posterImage}" class="w-full h-32 object-cover grayscale">` : ''}
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class="bg-gray-900/80 text-white px-4 py-2 rounded-lg font-bold text-base"><i class="fa-solid fa-lock mr-2"></i>เร็วๆ นี้</div>
-          </div>
-          <div class="p-5"><h3 class="font-black text-xl text-gray-400">📍 จังหวัด${p.name}</h3></div>
-        </div>`;
-    }
-
-    const disableSelect = isLocked && !isCurrent;
-    const btnHtml = isCurrent
-      ? `<div class="w-full bg-emerald-50 text-emerald-600 py-3.5 rounded-xl font-black text-lg text-center"><i class="fa-solid fa-check mr-1"></i> กำลังเดินอยู่ที่นี่</div>`
-      : disableSelect
-        ? `<button disabled class="w-full bg-gray-200 text-gray-400 py-3.5 rounded-xl font-black text-lg cursor-not-allowed">ยังเลือกใหม่ไม่ได้</button>`
-        : `<button class="w-full bg-gray-900 text-white py-3.5 rounded-xl font-black text-lg btn-select-province" data-id="${p.id}">ยืนยันเลือกพื้นที่นี้</button>`;
-
-    return `
-      <div class="bg-white rounded-3xl overflow-hidden shadow-sm border-2 ${isCurrent ? 'border-emerald-400' : 'border-pink-500'}">
-        ${p.posterImage ? `<img src="${p.posterImage}" class="w-full h-36 object-cover">` : ''}
-        <div class="p-5">
-          <h3 class="font-black text-xl text-gray-800">📍 จังหวัด${p.name}</h3>
-          <p class="text-base text-gray-500 mb-3">ปลดล็อก ${(p.milestones || []).length} สถานที่และของดีประจำจังหวัด</p>
-          ${btnHtml}
-        </div>
-      </div>`;
-  }).join('');
-
-  document.querySelectorAll('.btn-select-province').forEach(btn => {
-    btn.onclick = () => confirmProvinceSelect(btn.dataset.id);
-  });
-}
-window.openWalkathonMap = openWalkathonMap;
-
-async function confirmProvinceSelect(provinceId) {
-  showLoading('กำลังเริ่มฤดูกาลใหม่...');
-  try {
-    const provSnap = await getDoc(doc(db, 'walkathonProvinces', provinceId));
-    if (!provSnap.exists()) throw new Error('ไม่พบข้อมูลจังหวัดนี้');
-    const provData = provSnap.data();
-
-    const userSnap = await getDoc(doc(db, 'users', currentUid));
-    const userData = userSnap.data();
-    const prevWalkathon = userData.walkathon || null;
-
-    // เก็บฤดูกาลเดิม (ถ้ามี) ไว้เป็นประวัติ ก่อนเริ่มใหม่ — ไม่ลบ marchLogs เดิมเลย
-    if (prevWalkathon && prevWalkathon.startedAt) {
-      const prevTotal = await computeSeasonSteps(prevWalkathon.startedAt.toDate());
-      await addDoc(collection(db, 'users', currentUid, 'walkathonHistory'), {
-        provinceId: prevWalkathon.provinceId,
-        provinceName: prevWalkathon.provinceName,
-        startedAt: prevWalkathon.startedAt,
-        endedAt: serverTimestamp(),
-        totalSteps: prevTotal
-      });
-    }
-
-    await updateDoc(doc(db, 'users', currentUid), {
-      walkathon: {
-        provinceId,
-        provinceName: provData.name,
-        posterImage: provData.posterImage || '',
-        startedAt: serverTimestamp()
-      }
-    });
-
-    hideLoading();
-    showToast(`เริ่มออกเดินทางที่จังหวัด${provData.name}แล้ว!`, 'success');
-    await openMarchBoard();
-  } catch (err) {
-    hideLoading();
-    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
-  }
-}
-
-// รวมก้าวเดินเฉพาะที่เกิดหลังเริ่มฤดูกาลปัจจุบัน (marchLogs เก่าไม่ถูกแตะต้อง)
-async function computeSeasonSteps(startedDate) {
-  const snap = await getDocs(collection(db, 'users', currentUid, 'marchLogs'));
-  let total = 0;
-  snap.forEach(d => {
-    const l = d.data();
-    if (l.createdAt && l.createdAt.toDate() >= startedDate) total += l.steps || 0;
-  });
-  return total;
-}
 
 async function openMarchDashboard() {
   showView('march-dashboard-view');
@@ -1371,105 +1231,73 @@ document.getElementById('btn-submit-march').onclick = async () => {
   }
 };
 
-let currentWalkathonMilestones = [];
-let currentWalkathonProvinceName = '';
+const chonburiMilestones = [
+  { steps: 3500, q: "คำขวัญของจังหวัดชลบุรีคืออะไร?", a: "ทะเลงาม ข้าวหลามอร่อย อ้อยหวาน จักสานดี ประเพณีวิ่งควาย" },
+  { steps: 7000, q: "เกาะที่ใหญ่ที่สุดในจังหวัดชลบุรีคือเกาะอะไร?", a: "เกาะสีชัง" },
+  { steps: 14000, q: "ไปหนองมน คนพื้นที่จริงๆ เขาซื้อข้าวหลามแบบไหนกิน?", a: "ข้าวหลามช็อต" },
+  { steps: 21000, q: '"ขนมกันถั่ว" มีชื่อเรียกอีกอย่างว่าอะไร?', a: "ขนมจักจั่น" },
+  { steps: 28000, q: '"ซอสพริกศรีราชา" ดั้งเดิมมีรสชาติเด่นอย่างไร?', a: "ครบรส เปรี้ยว เผ็ด เค็ม หวาน กลมกล่อม" },
+  { steps: 35000, q: "ครกหินที่ดีที่สุดในไทย ทำจากตำบลอะไร?", a: "ตำบลอ่างศิลา" },
+  { steps: 49000, q: "ประเพณีวันออกพรรษาในตัวเมืองชลบุรีคือ?", a: "ประเพณีวิ่งควาย" },
+  { steps: 63000, q: "ประเพณีก่อเจดีย์ทรายที่บางแสนเรียกว่า?", a: "ประเพณีวันไหลบางแสน" },
+  { steps: 70000, q: '"แกรนด์แคนยอนชลบุรี" อดีตเคยเป็นอะไร?', a: "เหมืองหินเก่า" },
+  { steps: 84000, q: "เกาะที่จำกัดนักท่องเที่ยวเพื่ออนุรักษ์ปะการังคือ?", a: "เกาะแสมสาร" },
+  { steps: 95000, q: "ท่าเรือขนส่งสินค้าที่ใหญ่ที่สุดในไทยคือ?", a: "ท่าเรือแหลมฉบัง" },
+  { steps: 105000, q: "สัญลักษณ์ทางวัฒนธรรมของพนัสนิคมคือ?", a: "เครื่องจักสานพนัสนิคม" },
+  { steps: 125000, q: "สโมสรฟุตบอลชลบุรีมีฉายาว่า?", a: '"ฉลามชล"' },
+  { steps: 145000, q: "ชลบุรีอยู่ในโครงการพัฒนาที่เรียกว่า?", a: "EEC" },
+  { steps: 165000, q: "แผ่นแป้งทอดใส่กุ้งที่หนองมนเรียกว่า?", a: "ขนมฝักบัว" },
+  { steps: 185000, q: "อำเภอไหนมีฉายาว่า Little Tokyo?", a: "ศรีราชา" },
+  { steps: 210000, q: "ชลบุรีมีชายหาดกี่หาด?", a: "30 กว่าหาด" },
+  { steps: 230000, q: "ชลบุรีมีเกาะทั้งหมดกี่เกาะ?", a: "มากกว่า 40 เกาะ" },
+  { steps: 250000, q: "ชลบุรีมีส่วนกับการติดหวานของคนไทยยังไง?", a: "ขยายฐานผลิตน้ำตาลทราย" },
+  { steps: 270000, q: '"พัทยา" เกิดขึ้นได้เพราะอะไร?', a: "ทหารจีไออเมริกันช่วงสงครามเวียดนาม" },
+  { steps: 285000, q: '"Cobra Gold" คืออะไร?', a: "การฝึกรบร่วมที่ใหญ่ที่สุดในอาเซียน" },
+  { steps: 300000, q: "กลิ่นป๊อปคอร์นที่สวนสัตว์เขาเขียวมาจากอะไร?", a: 'หมีขอ (บินตุรง)' }
+];
 
 async function openMarchBoard() {
-  const userSnap = await getDoc(doc(db, 'users', currentUid));
-  const userData = userSnap.data();
-
-  if (!userData.walkathon || !userData.walkathon.startedAt) {
-    await openWalkathonMap();
-    return;
-  }
-
   showView('march-board-view');
-  document.querySelector('#march-board-view h2').innerText = `ตะลอน${userData.walkathon.provinceName}`;
-
-  const provSnap = await getDoc(doc(db, 'walkathonProvinces', userData.walkathon.provinceId));
-  const provData = provSnap.exists() ? provSnap.data() : { milestones: [] };
-  currentWalkathonMilestones = provData.milestones || [];
-  currentWalkathonProvinceName = userData.walkathon.provinceName;
-
-  const startedDate = userData.walkathon.startedAt.toDate();
 
   const logsRef = collection(db, 'users', currentUid, 'marchLogs');
-  const snap = await getDocs(query(logsRef, orderBy('createdAt', 'desc')));
-
-  let seasonTotal = 0;
-  const seasonLogs = [];
+  const q = query(logsRef, orderBy('createdAt', 'desc'));
+  const snap = await getDocs(q);
+  let allTimeTotal = 0;
+  const logs = [];
   snap.forEach(docSnap => {
     const d = docSnap.data();
-    if (d.createdAt && d.createdAt.toDate() >= startedDate) {
-      seasonLogs.push(d);
-      seasonTotal += d.steps || 0;
-    }
+    logs.push(d);
+    allTimeTotal += d.steps || 0;
   });
 
-  document.getElementById('march-board-total').innerText = seasonTotal.toLocaleString();
+  document.getElementById('march-board-total').innerText = allTimeTotal.toLocaleString();
 
   const grid = document.getElementById('march-board-grid');
-  grid.innerHTML = currentWalkathonMilestones.map((m, index) => {
-    const unlocked = seasonTotal >= m.steps;
+  grid.innerHTML = chonburiMilestones.map((m, index) => {
+    const unlocked = allTimeTotal >= m.steps;
     const boxStyle = unlocked ? 'bg-white border-2 border-pink-200 shadow-md' : 'bg-gray-100 border-2 border-gray-200 opacity-60';
-    const inner = unlocked
-      ? (m.stampImage
-          ? `<img src="${m.stampImage}" class="w-full h-full object-cover rounded-2xl">`
-          : `<i class="fa-solid fa-star text-3xl text-pink-500"></i>`)
+    const icon = unlocked
+      ? `<i class="fa-solid fa-star text-3xl text-pink-500"></i>`
       : `<i class="fa-solid fa-lock text-3xl text-gray-300"></i>`;
+    const clickAttr = unlocked ? `onclick="showMilestoneDetail(${index})"` : `onclick="window.showToast('สะสมให้ถึง ${m.steps.toLocaleString()} ก้าวเพื่อเปิดอ่าน', 'info')"`;
     return `
-      <div onclick="openMilestoneModal(${index})" class="flex flex-col items-center cursor-pointer">
-        <div class="w-full aspect-square rounded-2xl flex items-center justify-center overflow-hidden ${boxStyle}">${inner}</div>
-        <p class="text-lg font-black mt-2 ${unlocked ? 'text-pink-600' : 'text-gray-400'}">${(m.steps / 1000).toFixed(0)}k</p>
+      <div ${clickAttr} class="flex flex-col items-center cursor-pointer">
+        <div class="w-full aspect-square rounded-2xl flex items-center justify-center ${boxStyle}">${icon}</div>
+        <p class="text-lg font-black mt-2 ${unlocked ? 'text-pink-600' : 'text-gray-400'}">${(m.steps/1000).toFixed(0)}k</p>
       </div>`;
   }).join('');
 
-  const last7 = [...seasonLogs].reverse().slice(-7);
+  // กราฟ 7 วันล่าสุด (เรียงเก่า -> ใหม่)
+  const last7 = [...logs].reverse().slice(-7);
   renderMiniChart('chart-march-7day', last7.map(l => l.date), last7.map(l => l.steps), '#d81b60');
 }
 window.openMarchBoard = openMarchBoard;
 
-function openMilestoneModal(index) {
-  const m = currentWalkathonMilestones[index];
-  if (!m) return;
-
-  const modal = document.getElementById('milestone-modal');
-  const body = document.getElementById('milestone-modal-body');
-
-  const userTotalEl = document.getElementById('march-board-total');
-  const seasonTotal = Number((userTotalEl.innerText || '0').replace(/,/g, ''));
-  const unlocked = seasonTotal >= m.steps;
-
-  if (!unlocked) {
-    body.innerHTML = `
-      <div class="w-24 h-24 bg-gray-100 rounded-2xl flex items-center justify-center text-4xl text-gray-300 mx-auto mb-4">
-        <i class="fa-solid fa-lock"></i>
-      </div>
-      <h3 class="text-xl font-black text-gray-700 mb-2">ยังไม่ปลดล็อก</h3>
-      <p class="text-base text-gray-500 mb-1">สะสมก้าวเดินให้ถึง</p>
-      <p class="text-2xl font-black theme-text mb-3">${m.steps.toLocaleString()} ก้าว</p>
-      <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-        <div class="theme-pink h-3 rounded-full" style="width:${Math.min((seasonTotal / m.steps) * 100, 100)}%"></div>
-      </div>
-      <p class="text-sm text-gray-400 mt-2">ตอนนี้สะสมได้ ${seasonTotal.toLocaleString()} ก้าวแล้ว</p>
-    `;
-  } else {
-    body.innerHTML = `
-      <div class="w-28 h-28 rounded-2xl overflow-hidden mx-auto mb-4 border-4 border-pink-200 shadow-md bg-pink-50 flex items-center justify-center">
-        ${m.stampImage ? `<img src="${m.stampImage}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-stamp text-4xl theme-text"></i>`}
-      </div>
-      <span class="inline-block bg-pink-50 theme-text text-sm font-black px-3 py-1 rounded-full mb-3">ปลดล็อกที่ ${m.steps.toLocaleString()} ก้าว</span>
-      <p class="text-lg font-black text-gray-800 mb-2">${m.question}</p>
-      <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 mt-2">
-        <p class="text-base text-emerald-700 font-bold">${m.answer}</p>
-      </div>
-    `;
-  }
-
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+function showMilestoneDetail(index) {
+  const m = chonburiMilestones[index];
+  showToast(`🎉 พิชิต ${m.steps.toLocaleString()} ก้าว! — Q: ${m.q} A: ${m.a}`, 'success', 5000);
 }
-window.openMilestoneModal = openMilestoneModal;
+window.showMilestoneDetail = showMilestoneDetail;
 
 // --- ย่อรูปก่อนประมวลผล (กันไฟล์ใหญ่เกิน) ---
 function resizeImageForAI(file, maxSize = 1200) {
