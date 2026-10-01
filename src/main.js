@@ -1958,9 +1958,10 @@ const sleepMoodEmoji = { 1: '😩', 2: '😔', 3: '😐', 4: '🙂', 5: '😄' }
 // true เฉพาะวันสุดท้ายของเดือนปฏิทิน
 // TODO: ถ้ารอบโครงการไม่ตรงกับสิ้นเดือนปฏิทินจริง ให้แก้ logic ตรงนี้ตามรอบของพี่
 function isRecapDay(d = new Date()) {
-  const t = new Date(d);
-  t.setDate(t.getDate() + 1);
-  return t.getMonth() !== d.getMonth();
+  return true; // 🧪 TEST ONLY — ลบบรรทัดนี้แล้วเปิดใช้โค้ดเดิมกลับคืนหลังทดสอบเสร็จ
+  // const t = new Date(d);
+  // t.setDate(t.getDate() + 1);
+  // return t.getMonth() !== d.getMonth();
 }
 
 function isSameMonth(dateObj, ref) {
